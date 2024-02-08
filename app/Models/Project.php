@@ -16,9 +16,19 @@ class Project extends Model
         return $this->belongsTo(Customer::class);
     }
 
+    public function rates()
+    {
+        return $this->hasMany(ProjectRate::class);
+    }
+
     public function users()
     {
         return $this->belongsToMany(User::class, 'project_users');
+    }
+
+    public function userTasks()
+    {
+        return $this->hasMany(userTask::class);
     }
 
     public function files()

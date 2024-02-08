@@ -91,7 +91,7 @@
                                 <td>{{ $project->description }}</td>
                                 <td>{{ $project->start_date }}</td>
                                 <td>{{ $project->end_date }}</td>
-                                <td>{{ $project->customer->name }}</td> <!-- Assuming customer is a related model -->
+                                <td>{{ $project->customer ? $project->customer->name : ''}}</td> <!-- Assuming customer is a related model -->
                                 <td>
                                     <a href="{{route('projects.show', $project->id)}}">
                                          {{$project->tasks->count()}}
@@ -115,6 +115,11 @@
                                         @can('tasks.create')
                                         <div class="menu-item px-3">
                                             <a href="{{route('tasks.create')}}?project_id={{ $project->id }}" class="menu-link px-3">Create Task</a>
+                                        </div>
+                                        @endcan 
+                                        @can('projects.report')
+                                        <div class="menu-item px-3">
+                                            <a href="{{route('projects.report', $project->id)}}" class="menu-link px-3">report</a>
                                         </div>
                                         @endcan 
                                         @can('projects.show')

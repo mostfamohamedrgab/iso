@@ -37,6 +37,8 @@ return new class extends Migration
             $table->boolean('is_notify')->default(1);
             $table->string('lang')->default('ar');
 
+            $table->string('is_professional')->nullable();
+
 
             $table->string('code', 10)->nullable();
             $table->timestamp('code_expire')->nullable();

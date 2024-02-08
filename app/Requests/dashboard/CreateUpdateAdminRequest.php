@@ -31,6 +31,7 @@ class CreateUpdateAdminRequest extends FormRequest
                 'email'                  => 'required|email|unique:users,email,'.$this->id,
                 'image'                  => 'nullable',
                 'is_active'              => 'nullable',
+                'is_professional'              => 'nullable',
                 'password'              => 'nullable',
             ];
 
@@ -41,6 +42,7 @@ class CreateUpdateAdminRequest extends FormRequest
                     'email'                  => 'required|email|unique:users,email',
                     'image'                  => 'nullable',
                     'is_active'              => 'nullable',
+                    'is_professional'              => 'nullable',
                     'password'              => 'required',
                 ];
             }

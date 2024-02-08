@@ -51,9 +51,8 @@ class User extends Authenticatable
         'university',
         'graduation_year',
         'qualification',
-        'job'
-
-        
+        'job',
+        'is_professional'
     ];
 
     /**

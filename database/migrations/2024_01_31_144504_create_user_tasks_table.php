@@ -17,11 +17,16 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users');
             $table->foreignId('task_id')->constrained('tasks');
+            $table->foreignId('project_id')->constrained('projects');
             $table->timestamp('start_time')->nullable();
             $table->timestamp('end_time')->nullable();
             $table->text('notes')->nullable();
             $table->integer('errors_count')->nullable();
             $table->integer('assisted_count')->nullable();
+            
+            $table->integer('time_spent_getting_help')->nullable();
+            $table->integer('time_spent_searching')->nullable();
+
             $table->boolean('assisted')->nullable();
             $table->string('status')->default('not started yet');
             $table->timestamps();

@@ -85,8 +85,7 @@
                                     <label class=" col-form-label  fw-bold fs-6">Customer</label>
                                     <div class="">
                                         <!--begin::Col-->
-                                            <select name="customer_id" required aria-label="Select a Country" data-control="select2" data-placeholder="select customer" 
-                                            class="form-select form-select-solid form-select-lg fw-bold select2-hidden-accessible" data-select2-id="select2-data-10-05ls" tabindex="-1" aria-hidden="true">
+                                            <select name="customer_id" id="customer_id"   class="form-select form-select-solid ">
                                                 <option value="" data-select2-id="select2-data-12-wa4o">select customer</option>
                                                 @foreach ($customers as $customer)
                                                 <option value="{{$customer->id}}" 
@@ -138,16 +137,40 @@
 
 
                         <div class="row mb-6">
-                            <label class="col-lg-12 col-form-label required fw-bold fs-6">Users</label>
-                            <div class="col-lg-12">
-                                <select name="users[]" required data-placeholder="select users" class="select2 form-select form-select-lg form-select-solid" multiple>
-                                    @foreach ($users as $user)
-                                        <option value="{{ $user->id }}" {{ isset($project) && in_array($user->id, $project->users->pluck('id')->toArray()) ? 'selected' : '' }}>{{ $user->name }}</option>
+                        <label class="col-lg-12 col-form-label required fw-bold fs-6">Users</label>
+                        <div class="col-lg-12">
+                            <div class="mb-3">
+                                <button type="button" class="btn btn-primary" id="addUserBtn">Add User</button>
+                            </div>
+                            <div id="userFieldsContainer">
+                                <!-- User fields will be added here -->
+                                @if(isset($project))
+                                    @foreach($projectUsers as $user)
+                                        <div class="row mb-3 user-hourly-rate" id="user-hourly-rate-{{$user->id}}">
+                                            <div class="col-lg-6">
+                                                <select name="users[]" required data-placeholder="Select user" class=" form-select form-select-lg form-select-solid">
+                                                    @foreach ($users as $projectUser)
+                                                    <option {{$user->id == $projectUser->id ? 'selected' : ''}} value="{{ $projectUser->id }}">{{ $projectUser->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                                <div class="fv-plugins-message-container invalid-feedback"></div>
+                                            </div>
+                                            <div class="col-lg-4">
+                                                <input type="number" name="hourly_rate[]" required  value="{{ $user->pivot->hourly_rate }}" class="form-control form-control-lg form-control-solid" placeholder="Hourly rate">
+                                                <div class="fv-plugins-message-container invalid-feedback"></div>
+                                            </div>
+                                            <div class="col-lg-2">
+                                                <button type="button" class="btn btn-danger delete-user" data-user-id="{{$user->id}}"><i class="fa fa-trash"></i></button>
+                                            </div>
+                                        </div>
+
                                     @endforeach
-                                </select>
-                                <div class="fv-plugins-message-container invalid-feedback"></div>
+                                @endif 
                             </div>
                         </div>
+                    </div>
+
+
 
                         <div class="row mb-6">
                             <label class="col-lg-12 col-form-label fw-bold fs-6">Upload Files
@@ -198,9 +221,52 @@
 </div>
 @endsection
 @section('scripts')
-    <script>
-        $('#customer_id').select2();
-        $('.select2').select2();
+<script>
+       $(document).ready(function() {
+        $('#addUserBtn').click(function(e) {
+            e.preventDefault();
+            addUserField();
+        });
+
+        // Function to add user field dynamically
+        function addUserField() {
+            var userId = Date.now(); // Generate unique user ID
+            var userField = `
+                <div class="row mb-3 user-hourly-rate" id="user-hourly-rate-${userId}">
+                    <div class="col-lg-6">
+                        <select name="users[]" required data-placeholder="Select user" class=" form-select form-select-lg form-select-solid">
+                            @foreach ($users as $user)
+                            <option value="{{ $user->id }}">{{ $user->name }}</option>
+                            @endforeach
+                        </select>
+                        <div class="fv-plugins-message-container invalid-feedback"></div>
+                    </div>
+                    <div class="col-lg-4">
+                        <input type="number" name="hourly_rate[]" required class="form-control form-control-lg form-control-solid" placeholder="Hourly rate">
+                        <div class="fv-plugins-message-container invalid-feedback"></div>
+                    </div>
+                    <div class="col-lg-2">
+                        <button type="button" class="btn btn-danger delete-user" data-user-id="${userId}"><i class="fa fa-trash"></i></button>
+                    </div>
+                </div>
+            `;
+            $('#userFieldsContainer').append(userField);
+
+            // Reinitialize Select2 for the new dropdown
+            $('#user-hourly-rate-' + userId + ' select').select2();
+
+            // Delete user event
+           
+        }
+    });
+
+
+    $(document).on('click', '.delete-user', function() {
+        var userId = $(this).data('user-id');
+        $('#user-hourly-rate-' + userId).remove();
+    });
+
+    $("#customer_id").select2();
 
     $(".delete-file").click(function(e){
         e.preventDefault();

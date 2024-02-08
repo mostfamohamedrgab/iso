@@ -194,9 +194,15 @@ Route::group(['middleware' => ['auth',  'admin-lang' , 'web' , 'check-role'] , '
         'as'        => 'projects.index',
         'title'     => 'dashboard.projects',
         'type'      => 'parent',
-        'child'     => [ 'projects.create','projects.show','projects.edit','projects.destroy' ]
+        'child'     => [ 'projects.create','projects.show','projects.rate','projects.report','projects.edit','projects.destroy' ]
     ]);
 
+    # projects show
+    Route::get('projects/{id}/report', [
+        'uses'  => 'ProjectsController@report',
+        'as'    => 'projects.report',
+        'title' => ['actions.show', 'dashboard.report']
+    ]);
     # projects show
     Route::get('projects/{id}/show', [
         'uses'  => 'ProjectsController@show',
@@ -210,6 +216,12 @@ Route::group(['middleware' => ['auth',  'admin-lang' , 'web' , 'check-role'] , '
         'title' => ['actions.add', 'dashboard.projects']
     ]);
 
+    # projects rate
+    Route::post('projects/rate/{project}', [
+        'uses'  => 'ProjectsController@rate',
+        'as'    => 'projects.rate',
+        'title' => ['actions.add', 'dashboard.rate']
+    ]);
     # projects store
     Route::post('projects/store', [
         'uses'  => 'ProjectsController@store',

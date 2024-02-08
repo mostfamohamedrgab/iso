@@ -9,7 +9,68 @@
     <!--begin::Container-->
     <div id="kt_content_container" class="container-xxl">
 
-    <h2>{{$project->title}} - {{$task->title}} </h2>
+    <h2>{{$project->title}} - {{$task->title}} 
+
+        @if(!$report)
+            @can('projects.rate')
+            <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#RateProject">
+                Rate Project
+            </button>
+            @endcan
+        @endif 
+    </h2>
+
+            <!-- Modal -->
+<div class="modal fade" id="RateProject" tabindex="-1" role="dialog" aria-labelledby="RateProjectLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="RateProjectLabel">Rate the Project</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+      <form action="{{ route('projects.rate',$project->id) }}" method="POST">
+            @csrf
+            <div class="row">
+                <div class="col-md-6 mt-5">
+                    <div class="form-group">
+                        <label for="ease_of_use">Ease of Use:</label>
+                        <input type="number" class="form-control" id="ease_of_use" value="{{$ProjectRate?->ease_of_use}}" name="ease_of_use" min="0" max="7" step="1">
+                    </div>
+                </div>
+                <div class="col-md-6 mt-5">
+                    <div class="form-group">
+                        <label for="usefulness">Usefulness:</label>
+                        <input type="number" class="form-control" id="usefulness" value="{{$ProjectRate?->usefulness}}" name="usefulness" min="0" max="7" step="1">
+                    </div>
+                </div>
+                <div class="col-md-6 mt-5">
+                    <div class="form-group">
+                        <label for="appearance">Appearance:</label>
+                        <input type="number" class="form-control" id="appearance" value="{{$ProjectRate?->appearance}}" name="appearance" min="0" max="7" step="1">
+                    </div>
+                </div>
+                <div class="col-md-6 mt-5">
+                    <div class="form-group">
+                        <label for="clarity_and_understandability">Clarity and Understandability:</label>
+                        <input type="number" class="form-control" id="clarity_and_understandability" value="{{$ProjectRate?->clarity_and_understandability}}" name="clarity_and_understandability" min="0" max="7" step="1">
+                    </div>
+                </div>
+            </div>
+            @if(!$ProjectRate)
+            <button type="submit" class="btn btn-primary mt-10">Save</button>
+            @endif 
+        </form>
+      </div>
+     
+    </div>
+  </div>
+</div>
+
+      
+    
 
     @if($report)
             <div class="row">
@@ -140,14 +201,14 @@
                                 <div class="my-lg-0 my-1">
                                     <a id="start-task{{$task->id}}" 
                                         data-end-task="end-task-{{$task->id}}"
-                                     href="#" class="btn btn-sm btn-success font-weight-bolder text-uppercase mr-3" 
+                                     href="#" class="btn btn-sm btn-success start-task font-weight-bolder text-uppercase mr-3" 
                                         data-url="{{ route('tasks.time',$userTasks->where('task_id',$task->id)->first()->id) }}" 
                                         onclick="startTask(this); return false;">
                                         {{$userTasks->where('task_id',$task->id)->first()->start_time ? $userTasks->where('task_id',$task->id)->first()->start_time : 'Start Task'}}
                                     </a>
                                     <a  
                                         id="end-task-{{$task->id}}"
-                                         href="#" class="btn btn-sm btn-danger font-weight-bolder text-uppercase"
+                                         href="#" class="btn btn-sm btn-danger end-task font-weight-bolder text-uppercase"
                                          data-url="{{ route('tasks.time',$userTasks->where('task_id',$task->id)->first()->id) }}" 
                                          data-started="{{ $userTasks->where('task_id',$task->id)->first()->start_time ? '1' : '0' }}"
                                          onclick="endTask(this); return false;">
@@ -239,6 +300,26 @@
                                     </div>
                                 </div>
 
+                                <div class="row">
+                                    <div class="col-md-6 mt-5 time_spent_searching">
+                                        <label class="">time spent searching</label>
+                                        <div class="">
+                                            <input type="number" name="time_spent_searching" placeholder="time spent searching" class="form-control form-control-lg form-control-solid" value="{{ $userTasks->where('task_id',$task->id)->count() ? $userTasks->where('task_id',$task->id)->first()->time_spent_searching : old('time_spent_searching') }}">
+                                            <div class="fv-plugins-message-container invalid-feedback"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6 mt-5">
+                                        <label class="">time spent getting help</label>
+                                        <div class="">
+                                            <input type="number" name="time_spent_getting_help" placeholder="time spent getting help" class="form-control form-control-lg form-control-solid" value="{{ $userTasks->where('task_id',$task->id)->count() ? $userTasks->where('task_id',$task->id)->first()->time_spent_getting_help : old('time_spent_getting_help') }}">
+                                            <div class="fv-plugins-message-container invalid-feedback"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                
+
                                 <div class="col-md-12 mt-5">
                                     <label class="">Status</label>
                                     <div class="">
@@ -278,8 +359,28 @@
 <!--end::Post-->
 					
 @endsection
+
+@push('css')
+    @if($project->end_date AND $project->end_date < now())
+        <style>
+            .start-task , .end-task {
+                display:none
+            }
+        </style>
+    @endif 
+@endpush
+
 @push('js')
 @if(!$report)
+
+   
+
+    @if($project->end_date AND $project->end_date < now())
+            <script>
+                $(".submit-button").hide();
+            </script>
+    @endif 
+
     <script>    
 
     const csrfToken = $('meta[name="csrf-token"]').attr('content');

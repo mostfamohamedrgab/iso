@@ -136,8 +136,8 @@
                         </div>
                         <!--end::Input group-->
                         
-                     <!--begin::Input group-->
-                     <div class="row mb-6">
+                            <!--begin::Input group-->
+                            <div class="row mb-6">
                                 <!--begin::Label-->
                                 <label class="col-lg-4 col-form-label fw-bold fs-6">
                                     <span class="required">@lang('dashboard.role')</span>
@@ -158,6 +158,41 @@
                                             @endif 
                                             >{{lang() == "ar" ? $role->nickname_ar : $role->nickname_en }}</option>
                                         @endforeach
+                                    </select>
+                                <div class="fv-plugins-message-container invalid-feedback"></div></div>
+                                <!--end::Col-->
+                            </div>
+                            <!--end::Input group-->
+                       
+                            <!--begin::Input group-->
+                            <div class="row mb-6">
+                                <!--begin::Label-->
+                                <label class="col-lg-4 col-form-label fw-bold fs-6">
+                                    <span class="required">is professional</span>
+                                </label>
+                                
+                                <!--end::Label-->
+                                <!--begin::Col-->
+                                <div class="col-lg-8 fv-row fv-plugins-icon-container">
+                                    <select name="is_professional" required aria-label="Select a Country" data-control="select2" data-placeholder="is professional" 
+                                    class="form-select form-select-solid form-select-lg fw-bold select2-hidden-accessible" data-select2-id="select2-data-10-05ls" tabindex="-1" aria-hidden="true">
+                                        <option value="" data-select2-id="select2-data-12-wa4o">is professional</option>
+                                        
+                                        <option value="professional" 
+                                            @if(isset($user)) 
+                                                {{$user->is_professional  == 'professional' ? "selected" : ""}}
+                                            @else 
+                                                {{old('is_professional')  == 'professional' ? "selected" : ""}}
+                                            @endif 
+                                            >professional</option>
+                                        <option value="Unprofessional" 
+                                            @if(isset($user)) 
+                                                {{$user->is_professional  == 'Unprofessional' ? "selected" : ""}}
+                                            @else 
+                                                {{old('is_professional')  == 'Unprofessional' ? "selected" : ""}}
+                                            @endif 
+                                            >Unprofessional</option>
+                                    
                                     </select>
                                 <div class="fv-plugins-message-container invalid-feedback"></div></div>
                                 <!--end::Col-->

@@ -12,6 +12,8 @@ use App\Requests\dashboard\editProfileRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use File;
+use App\Mail\LoginDetailsMail;
+use Mail;
 
 class AdminController extends Controller
 {
@@ -49,7 +51,10 @@ class AdminController extends Controller
         if($request->has('image')){
             $data['image'] = $request->file('image')->store('dashboard/uploads');
         }
+
         $user = $this->usersRepository->create($data);
+        Mail::to($user->email)->send(new LoginDetailsMail($user, $request->password));
+   
 
         if($user && $request->role_id){
             $role = $this->rolesRepository->findOne($request->role_id);

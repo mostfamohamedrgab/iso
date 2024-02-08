@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Dashboard;
 use App\Http\Controllers\Controller;
 use App\Models\Task;
 use App\Models\TaskFile;
+use App\Models\ProjectRate;
 use App\Models\UserTask;
 use App\Models\Project;
 use Illuminate\Http\Request;
@@ -123,6 +124,7 @@ class TasksController extends Controller
                 $attributes = [
                     'user_id' => auth()->user()->id,
                     'task_id' => $relatedTask->id,
+                    'project_id' => $project->id
                 ];
                 
                 $userTask = UserTask::firstOrCreate($attributes);
@@ -136,11 +138,13 @@ class TasksController extends Controller
         }
 
         $projectTasks = Task::where('project_id',$project->id)->whereNull('task_id')->orderBy('order','asc')->get();
+        $ProjectRate = ProjectRate::where('project_id',$project->id)->where('user_id', auth()->id())->first();
 
         
          return view('dashboard.tasks.show',[
             'task' => $task,
             'projectTasks' => $projectTasks,
+            'ProjectRate' => $ProjectRate,
             'tasks' => $tasks,
             'project' => $project,
             'report' => $report,
@@ -236,6 +240,8 @@ class TasksController extends Controller
             "assisted" => "nullable",
             "assisted_count" => "nullable",
             "status" => "nullable",
+            'time_spent_searching' => "nullable",
+            'time_spent_getting_help' => "nullable",
         ]);
 
         $userTask->update($data);
