@@ -18,6 +18,8 @@ return new class extends Migration
             $table->string('title');
             $table->text('description');
             $table->integer("order");
+            $table->integer('weight')->nullable();
+            $table->enum('can_task_be_partially_completed',[0,1]);
             $table->foreignId('project_id')->constrained('projects');
             $table->foreignId('task_id')->nullable()->constrained('tasks');
             $table->timestamps();

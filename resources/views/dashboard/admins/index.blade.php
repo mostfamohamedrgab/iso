@@ -33,7 +33,42 @@
                 <div class="card-toolbar">
                     <!--begin::Add customer-->
                     @can('admins.create')
+
+                    <button type="button" style="margin-right:10px" class="btn btn-primary ml-10" data-toggle="modal" data-target="#usersModel">
+                    Import Users
+                    </button>
+
                     <a href="{{ route('admins.create')}}" class="btn btn-primary">@lang('dashboard.create_title', ['page_title' => __('dashboard.admin')])</a>
+
+                    
+
+
+                    <!-- Modal -->
+<div class="modal fade" id="usersModel" tabindex="-1" role="dialog" aria-labelledby="usersModelLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="usersModelLabel">Import Users</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form action="{{ route('admins.import') }}" method="POST" id="import-users-form" enctype="multipart/form-data">
+            @csrf 
+            <div class="form-control">
+                <input type="file" name="file" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" class="form-group">
+            </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="submit" form="import-users-form" class="btn btn-primary">Import</button>
+      </div>
+    </div>
+  </div>
+</div>
+
                     @endcan 
                     <!--end::Add customer-->
                     <span class="w-5px h-2px"></span>
@@ -61,6 +96,7 @@
                             </th>
                             <th class="">@lang('dashboard.name')</th>
                             <th class="">Email</th>
+                            <th class="">Role</th>
                             <th class=""> Phone Number</th>
                             <th class="text-end min-w-70px">@lang('dashboard.actions')</th>
                         </tr>
@@ -97,6 +133,7 @@
                                     <!--end::Badges-->
                                 </td>
                                 <td>{{$user->phone}}</td>
+                                <td>{{$user->roleNameEn()}}</td>
                               
                                 <!--begin::Action=-->
                                 <td class="text-end">

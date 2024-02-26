@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Models\Project;
+use App\Models\ProjectUser;
 use App\Models\ProjectFile;
 use App\Models\Customer;
 use App\Models\User;
@@ -22,6 +23,82 @@ use Carbon\Carbon;
 class ProjectsController extends Controller
 {
    
+    public function agree($id)
+    {
+        $project = Project::findOrFail($id);
+
+        // Check if the user is assigned to the project
+        if (!$project->users->contains(auth()->user())) {
+            abort(403); // User is not assigned to the project, so forbid access
+        }
+
+        $projectUser = DB::table('project_users')
+                        ->where('project_id', $id)
+                        ->where('user_id', auth()->id())
+                        ->first();
+
+        
+        if($projectUser->user_answer)
+        {
+            return redirect(route('projects.accepshow',$project->id));
+        }
+
+        return view('dashboard.projects.agree',[
+            'project' => $project
+        ]);
+    }
+
+    public function accept ($id)
+    {
+        $project = Project::findOrFail($id);
+
+        $projectUser = DB::table('project_users')
+                        ->where('project_id', $id)
+                        ->where('user_id', auth()->id())
+                        ->first();
+
+        // Check if the user is assigned to the project
+        if (!$projectUser) {
+            abort(403); // User is not assigned to the project, so forbid access
+        }
+
+
+
+        return view('dashboard.projects.accept',[
+            'project' => $project,
+            'projectUser' => $projectUser
+        ]);
+    }
+
+    public function acceptSave(Request $request ,$id)
+    {
+        $project = Project::findOrFail($id);
+        $projectUser = $project->users->where('id', auth()->id())->first();
+        // Check if the user is assigned to the project
+        if (!$projectUser) {
+            abort(403); // User is not assigned to the project, so forbid access
+        }
+
+        $projectUser = $projectUser->pivot;
+            
+        $validatedData['hourly_rate'] = 'required';
+        $validatedData['year_of_experience'] = 'required';
+        $validatedData['used_software_before'] = $project->used_software_before ? 'required' : 'nullable';
+        $validatedData['gender'] = 'required';
+        $validatedData['user_computer_skills'] = $project->user_computer_skills ? 'required|in:'. $project->user_computer_skills : 'nullable';
+       
+        $data = $request->validate($validatedData,[
+            'user_computer_skills.in' => 'The selected computer skills are not accepted in this project.',
+        ]);
+
+        $data['user_answer'] = '1';
+
+        $projectUser->update($data);
+
+        return redirect(route('projects.show', $project->id));
+        return back()->withSuccess('Saved Successfully');
+    }   
+
     public function report($projectId)
     {
         $project = Project::with(['users', 'tasks', 'userTasks'])->findOrFail($projectId);
@@ -80,8 +157,7 @@ class ProjectsController extends Controller
         $pdf->setPaper('A4', 'portrait');
         $pdf->render();
         // Send PDF data as response with appropriate headers
-        return response($pdf->output())
-                ->header('Content-Type', 'application/pdf');
+        return $pdf->stream();
     }
 
     public function index()
@@ -124,28 +200,34 @@ class ProjectsController extends Controller
             'image' => 'nullable',
             'title' => 'required|string|max:255',
             'description' => 'required|string',
-            'objective' => 'nullable|string',
+            'goal' => 'required|string',
+            'admin_hourly_rate' => 'required',
+            'average_time_to_complete' => 'required',
             'start_date' => 'nullable|date',
+            'used_software_before' => 'nullable',
+            'user_computer_skills' => 'nullable',
             'end_date' => 'nullable|date',
             'customer_id' => 'nullable|exists:customers,id', 
         ]);
 
-        $hourlyRates = $request->input('hourly_rate', []);
+        $data['used_software_before'] = $request->has('used_software_before') ? '1' : '0';
+        if($request->user_computer_skills)
+        {
+            $data['user_computer_skills'] = implode(',', $request->user_computer_skills);
+        }
+
+
         $users = $request->input('users', []);
         
 
         // Create a new project with the validated data
         $project = Project::create($data);
-        $projectUrl = route('projects.show', $project->id);
+        $projectUrl = route('projects.agree', $project->id);
 
-        
-        foreach ($hourlyRates as $index => $hourlyRate) {
-            $user = User::findOrFail($users[$index]);
-
-            Mail::to($user->email)->send(new ProjectSelectedNotification($project, $projectUrl));
-
-            
-            $project->users()->attach($users[$index], ['hourly_rate' => $hourlyRate]);
+        foreach ($users as $userId) {
+            $user = User::findOrFail($userId);
+            Mail::to($user->email)->send(new ProjectSelectedNotification($project, $projectUrl,$user));
+            $project->users()->attach($userId);
         }
 
 
@@ -185,6 +267,16 @@ class ProjectsController extends Controller
         $tasks = Task::where('project_id',$project->id)->whereNull('task_id')->orderBy('order','asc')->get();
         $userTasks = UserTask::whereIn('task_id',$tasks->pluck('id')->toArray())->get();
 
+
+        $projectUser = DB::table('project_users')
+                            ->where('project_id', $project->id)
+                            ->where('user_id', auth()->id())
+                            ->first();
+
+        if(!$projectUser->user_answer)
+        {
+            return redirect(route('projects.accepshow',$project->id));
+        }
       
         return view('dashboard.projects.show', compact('project','tasks','userTasks'));
     }
@@ -221,21 +313,40 @@ class ProjectsController extends Controller
             'image' => 'nullable',
             'title' => 'required|string|max:255',
             'description' => 'required|string',
-            'objective' => 'nullable|string',
+            'goal' => 'required|string',
+            'admin_hourly_rate' => 'required',
+            'average_time_to_complete' => 'required',
+            'used_software_before' => 'nullable',
+            'user_computer_skills' => 'nullable',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date',
             'customer_id' => 'nullable|exists:customers,id', // Ensure customer exists
         ]);
 
-        // Update the project with the validated data
-        $hourlyRates = $request->input('hourly_rate', []);
-        $users = $request->input('users', []);
+        $data['used_software_before'] = $request->has('used_software_before') ? '1' : '0';
+        if($request->user_computer_skills)
+        {
+            $data['user_computer_skills'] = implode(',', $request->user_computer_skills);
+        }
 
+
+        // Update the project with the validated data
         $project->update($data);
+        $oldUsers  =    $project->users->pluck('id')->toArray();
         $project->users()->detach();
 
-        foreach ($hourlyRates as $index => $hourlyRate) {
-            $project->users()->attach($users[$index], ['hourly_rate' => $hourlyRate]);
+        // Create a new project with the validated data
+        $users = $request->input('users', []);
+        $projectUrl = route('projects.agree', $project->id);
+
+        foreach ($users as $userId) {
+
+            if(!in_array($userId,$oldUsers))
+            {
+                $user = User::findOrFail($userId);
+                Mail::to($user->email)->send(new ProjectSelectedNotification($project, $projectUrl,$user));
+            }
+            $project->users()->attach($userId);
         }
 
 
@@ -286,18 +397,21 @@ class ProjectsController extends Controller
     public function rate(Request $request,$project)
     {
         $validatedData = $request->validate([
-            'ease_of_use' => 'required|numeric|min:0|max:10',
-            'usefulness' => 'required|numeric|min:0|max:10',
-            'appearance' => 'required|numeric|min:0|max:10',
-            'clarity_and_understandability' => 'required|numeric|min:0|max:10',
+            'rate' => 'required|numeric|min:0|max:10',
+            'reason' => 'nullable',
         ]);
 
         $validatedData['user_id'] = auth()->id();
         $validatedData['project_id'] = $project;
-        ProjectRate::where('user_id',auth()->id())->where('project_id',$project)->delete();
+        $rate = ProjectRate::where('user_id',auth()->id())->where('project_id',$project)->first();
 
-        ProjectRate::create($validatedData);
+        if($rate)
+        {
+            $rate->update($validatedData);
+        }else{
+            ProjectRate::create($validatedData);
+        }
 
-        return redirect()->back()->with('success', 'Project rated successfully.');
+        return redirect()->back()->with('success', 'Thank you for completing this assessment.');
     }
 }

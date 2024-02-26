@@ -11,65 +11,11 @@
 
     <h2>{{$project->title}} - {{$task->title}} 
 
-        @if(!$report)
-            @can('projects.rate')
-            <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#RateProject">
-                Rate Project
-            </button>
-            @endcan
-        @endif 
+        
     </h2>
+    <p>{{$project->goal}}</p>
 
-            <!-- Modal -->
-<div class="modal fade" id="RateProject" tabindex="-1" role="dialog" aria-labelledby="RateProjectLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="RateProjectLabel">Rate the Project</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-      <form action="{{ route('projects.rate',$project->id) }}" method="POST">
-            @csrf
-            <div class="row">
-                <div class="col-md-6 mt-5">
-                    <div class="form-group">
-                        <label for="ease_of_use">Ease of Use:</label>
-                        <input type="number" class="form-control" id="ease_of_use" value="{{$ProjectRate?->ease_of_use}}" name="ease_of_use" min="0" max="7" step="1">
-                    </div>
-                </div>
-                <div class="col-md-6 mt-5">
-                    <div class="form-group">
-                        <label for="usefulness">Usefulness:</label>
-                        <input type="number" class="form-control" id="usefulness" value="{{$ProjectRate?->usefulness}}" name="usefulness" min="0" max="7" step="1">
-                    </div>
-                </div>
-                <div class="col-md-6 mt-5">
-                    <div class="form-group">
-                        <label for="appearance">Appearance:</label>
-                        <input type="number" class="form-control" id="appearance" value="{{$ProjectRate?->appearance}}" name="appearance" min="0" max="7" step="1">
-                    </div>
-                </div>
-                <div class="col-md-6 mt-5">
-                    <div class="form-group">
-                        <label for="clarity_and_understandability">Clarity and Understandability:</label>
-                        <input type="number" class="form-control" id="clarity_and_understandability" value="{{$ProjectRate?->clarity_and_understandability}}" name="clarity_and_understandability" min="0" max="7" step="1">
-                    </div>
-                </div>
-            </div>
-            @if(!$ProjectRate)
-            <button type="submit" class="btn btn-primary mt-10">Save</button>
-            @endif 
-        </form>
-      </div>
-     
-    </div>
-  </div>
-</div>
 
-      
     
 
     @if($report)
@@ -135,42 +81,27 @@
     <!--begin::Crd-->
     <div class="card card-custom gutter-b">
 
-    <ul class="nav nav-tabs" style="padding:20px">
-        @foreach($projectTasks as $taskIndex => $loopTask)
 
-            @php 
-                $prevTask = null;
-                $workingTask = true;
+    @if($project->end_date AND $project->end_date < now())
+    <div class="alert alert-success text-center">Project completed At {{$project->end_date}}</div>
+    @endif 
 
-                if ($taskIndex > 0) {
-                    $prevTaskIndex = $taskIndex - 1;
-                    $prevTask = $projectTasks[$prevTaskIndex];
-                    $prevTaskStatusObj = $userTasks->where('task_id', $prevTask->id)->first();
-                    $prevTaskStatus = $prevTaskStatusObj ? $prevTaskStatusObj->status : null;
-                    $workingTask = isset($prevTaskStatus) && isDoneTask($prevTaskStatus) && $loopTask->order > $task->order;
-                }
-            @endphp
-
-            <li class="nav-item {{$workingTask ? 'working-sub-task' : 'disabled-sub-task'}} {{ isset($prevTaskStatus) ? $prevTaskStatus : ''}} {{$loopTask->id}}">
-                <a class="nav-link {{$task->id == $loopTask->id ? 'active' : ''}}" href="{{ route('tasks.show',$loopTask->id) }}">{{ $loopTask->title }}</a>
-            </li>
-        @endforeach
-    </ul>
-
-        @foreach($tasks as $taskIndex => $task)
+        <div class="row">
+            <div class="col-md-9">
+        @foreach($tasks as $subTaskIndex => $subTask)
                 @php 
-                    $prevTask  = $task;
+                    $prevTask  = $subTask;
                     $workingTask = true; 
                     
-                    if($taskIndex > 1):
-                        $prevTaskIndex = $taskIndex - 1;
+                    if($subTaskIndex > 1):
+                        $prevTaskIndex = $subTaskIndex - 1;
                         $prevTask = $tasks[$prevTaskIndex]; // Assuming $tasks is an array of tasks
                         $prevTaskStatus = $userTasks->where('task_id', $prevTask->id)->first()->status;
                         $workingTask = isset($prevTaskStatus) && isDoneTask($prevTaskStatus);
                     endif;  
                 @endphp 
             
-                <div class="card-body {{$task->task_id ? 'sub-task' : ''}} {{$workingTask ? 'working-task' : 'disabled-task'}} {{ isset($prevTaskStatus) ? $prevTaskStatus : ''}}">
+                <div class="card-body {{$subTask->task_id ? 'sub-task' : ''}} {{$workingTask ? 'working-task' : 'disabled-task'}} {{ isset($prevTaskStatus) ? $prevTaskStatus : ''}}">
                     <div class="d-flex">
                         <!--begin: Pic-->
                         <div class="flex-shrink-0 mr-7 mt-lg-0 mt-3">
@@ -188,36 +119,36 @@
                             <div class="mr-3">
                                     <!--begin::Name-->
                                     <h3  class="d-flex align-items-center text-dark text-hover-primary font-size-h5 font-weight-bold mr-3">
-                                    @if($task->task_id) <i class="fa fa-arrow-right " style="margin-right:10px"></i>  @endif 
-                                        {{$taskIndex != 0 ? "[".$taskIndex ."]" : ''}}
-                                    {{$task->title}}
+                                    @if($subTask->task_id) <i class="fa fa-arrow-right " style="margin-right:10px"></i>  @endif 
+                                        {{$subTaskIndex != 0 ? "[".$subTaskIndex ."]" : ''}}
+                                    {{$subTask->title}}
                                     <i class="flaticon2-correct text-success icon-md ml-2"></i></h3>
                                     <!--end::Name-->
                                     
                                 </div>
 
 
-                            <div class="d-flex align-items-center justify-content-between flex-wrap" id="task-scroll{{$task->id}}">
+                            <div class="d-flex align-items-center justify-content-between flex-wrap" id="task-scroll{{$subTask->id}}">
                                 <div class="my-lg-0 my-1">
-                                    <a id="start-task{{$task->id}}" 
-                                        data-end-task="end-task-{{$task->id}}"
+                                    <a id="start-task{{$subTask->id}}" 
+                                        data-end-task="end-task-{{$subTask->id}}"
                                      href="#" class="btn btn-sm btn-success start-task font-weight-bolder text-uppercase mr-3" 
-                                        data-url="{{ route('tasks.time',$userTasks->where('task_id',$task->id)->first()->id) }}" 
+                                        data-url="{{ route('tasks.time',$userTasks->where('task_id',$subTask->id)->first()->id) }}" 
                                         onclick="startTask(this); return false;">
-                                        {{$userTasks->where('task_id',$task->id)->first()->start_time ? $userTasks->where('task_id',$task->id)->first()->start_time : 'Start Task'}}
+                                        {{$userTasks->where('task_id',$subTask->id)->first()->start_time ? $userTasks->where('task_id',$subTask->id)->first()->start_time : 'Start Task'}}
                                     </a>
                                     <a  
-                                        id="end-task-{{$task->id}}"
+                                        id="end-task-{{$subTask->id}}"
                                          href="#" class="btn btn-sm btn-danger end-task font-weight-bolder text-uppercase"
-                                         data-url="{{ route('tasks.time',$userTasks->where('task_id',$task->id)->first()->id) }}" 
-                                         data-started="{{ $userTasks->where('task_id',$task->id)->first()->start_time ? '1' : '0' }}"
+                                         data-url="{{ route('tasks.time',$userTasks->where('task_id',$subTask->id)->first()->id) }}" 
+                                         data-started="{{ $userTasks->where('task_id',$subTask->id)->first()->start_time ? '1' : '0' }}"
                                          onclick="endTask(this); return false;">
-                                        {{$userTasks->where('task_id',$task->id)->first()->end_time ? $userTasks->where('task_id',$task->id)->first()->end_time : 'End Task'}}
+                                        {{$userTasks->where('task_id',$subTask->id)->first()->end_time ? $userTasks->where('task_id',$subTask->id)->first()->end_time : 'End Task'}}
                                     </a>
                                 </div>
-                                @if($userTasks->where('task_id',$task->id)->first()->start_time AND $userTasks->where('task_id',$task->id)->first()->end_time)
+                                @if($userTasks->where('task_id',$subTask->id)->first()->start_time AND $userTasks->where('task_id',$subTask->id)->first()->end_time)
                                     <span class="btn btn-sm btn-light-primary">
-                                        Taken Time: {{$userTasks->where('task_id',$task->id)->first()->getTimeDiff()}}
+                                        Taken Time: {{$userTasks->where('task_id',$subTask->id)->first()->getTimeDiff()}}
                                     </span>
                                 @endif 
                             </div>
@@ -226,7 +157,7 @@
                             <!--begin: Content-->
                             <div class="d-flex align-items-center flex-wrap justify-content-between">
                                 <div class="flex-grow-1 font-weight-bold text-dark-50 py-5 py-lg-2 mr-5">
-                                    {{$task->description }}
+                                    {{$subTask->description }}
                                 </div>
                             </div>
                             <!--end: Content-->
@@ -239,7 +170,7 @@
                         <!--begin: Item-->
                         <div class="d-flex align-items-center flex-lg-fill mr-5 my-1">
                             <div class="d-flex flex-column text-dark-75">
-                                @foreach($task->files as $file)
+                                @foreach($subTask->files as $file)
                                     <a href="{{ asset($file->file) }}">
                                         <li class="font-weight-bolder font-size-sm">{{$file->name}}</li>
                                     </a>
@@ -252,8 +183,8 @@
 
                     <!--begin::Basic info-->
                     <!--begin::Form-->
-                    <form id="kt_ecommerce_add_product_form{{$task->id}}" 
-                        action="{{  route('tasks.rate',$userTasks->where('task_id',$task->id)->first()->id)  }}"
+                    <form id="kt_ecommerce_add_product_form{{$subTask->id}}" 
+                        action="{{  route('tasks.rate',$userTasks->where('task_id',$subTask->id)->first()->id)  }}"
                         method="post" enctype="multipart/form-data" 
                         class=" d-flex flex-column flex-lg-row " >
                         <!--begin::Card body-->
@@ -264,11 +195,23 @@
                             <!--begin::Input group-->
                             <div class="row ">
 
+                            <div class="col-md-12 mt-5">
+                                    <label class="">Status</label>
+                                    <div class="">
+                                        <select name="status" class="form-select form-select-lg form-select-solid">
+                                            @foreach(taskStatus() as $status)
+                                            <option value="{{ $status }}" {{  $userTasks->where('task_id',$subTask->id)->first()->status == $status ? 'selected' : '' }}>{{ $status }}</option>
+                                            @endforeach
+                                        </select>
+                                        <div class="fv-plugins-message-container invalid-feedback"></div>
+                                    </div>
+                                </div>
+
                                 <!-- Add fields for notes, errors_count, assisted, and status -->
                                 <div class="com-md-12 mt-5">
                                     <label class="">Notes</label>
                                     <div class="">
-                                        <textarea name="notes" style="height:80px;" placeholder="Notes" class="form-control form-control-lg form-control-solid">{{ $userTasks->where('task_id',$task->id)->count() ? $userTasks->where('task_id',$task->id)->first()->notes : old('notes') }}</textarea>
+                                        <textarea name="notes" style="height:80px;" placeholder="Notes" class="form-control form-control-lg form-control-solid">{{ $userTasks->where('task_id',$subTask->id)->count() ? $userTasks->where('task_id',$subTask->id)->first()->notes : old('notes') }}</textarea>
                                         <div class="fv-plugins-message-container invalid-feedback"></div>
                                     </div>
                                 </div>
@@ -276,7 +219,7 @@
                                 <div class="col-md-4 mt-5">
                                     <label class="">Errors Count</label>
                                     <div class="">
-                                        <input type="number" name="errors_count" placeholder="Errors Count" class="form-control form-control-lg form-control-solid" value="{{ $userTasks->where('task_id',$task->id)->count() ? $userTasks->where('task_id',$task->id)->first()->errors_count : old('errors_count') }}">
+                                        <input type="number" name="errors_count" placeholder="Errors Count" class="form-control form-control-lg form-control-solid" value="{{ $userTasks->where('task_id',$subTask->id)->count() ? $userTasks->where('task_id',$subTask->id)->first()->errors_count : old('errors_count') }}">
                                         <div class="fv-plugins-message-container invalid-feedback"></div>
                                     </div>
                                 </div>
@@ -285,8 +228,8 @@
                                     <label class="">Assisted</label>
                                     <div class="">
                                         <select name="assisted" class="assisted form-select form-select-lg form-select-solid">
-                                            <option value="1" {{  $userTasks->where('task_id',$task->id)->first()->assisted == 1 ? 'selected' : '' }}>Yes</option>
-                                            <option value="0" {{  $userTasks->where('task_id',$task->id)->first()->assisted == 0 ? 'selected' : '' }}>No</option>
+                                            <option value="1" {{  $userTasks->where('task_id',$subTask->id)->first()->assisted == 1 ? 'selected' : '' }}>Yes</option>
+                                            <option value="0" {{  $userTasks->where('task_id',$subTask->id)->first()->assisted == 0 ? 'selected' : '' }}>No</option>
                                         </select>
                                         <div class="fv-plugins-message-container invalid-feedback"></div>
                                     </div>
@@ -295,7 +238,7 @@
                                 <div class="col-md-4 mt-5 assisted-count">
                                     <label class="">Assisted Count</label>
                                     <div class="">
-                                        <input type="number" name="assisted_count" placeholder="Assisted count" class="form-control form-control-lg form-control-solid" value="{{ $userTasks->where('task_id',$task->id)->count() ? $userTasks->where('task_id',$task->id)->first()->assisted_count : old('assisted_count') }}">
+                                        <input type="number" name="assisted_count" placeholder="Assisted count" class="form-control form-control-lg form-control-solid" value="{{ $userTasks->where('task_id',$subTask->id)->count() ? $userTasks->where('task_id',$subTask->id)->first()->assisted_count : old('assisted_count') }}">
                                         <div class="fv-plugins-message-container invalid-feedback"></div>
                                     </div>
                                 </div>
@@ -304,7 +247,7 @@
                                     <div class="col-md-6 mt-5 time_spent_searching">
                                         <label class="">time spent searching</label>
                                         <div class="">
-                                            <input type="number" name="time_spent_searching" placeholder="time spent searching" class="form-control form-control-lg form-control-solid" value="{{ $userTasks->where('task_id',$task->id)->count() ? $userTasks->where('task_id',$task->id)->first()->time_spent_searching : old('time_spent_searching') }}">
+                                            <input type="number" name="time_spent_searching" placeholder="time spent searching" class="form-control form-control-lg form-control-solid" value="{{ $userTasks->where('task_id',$subTask->id)->count() ? $userTasks->where('task_id',$subTask->id)->first()->time_spent_searching : old('time_spent_searching') }}">
                                             <div class="fv-plugins-message-container invalid-feedback"></div>
                                         </div>
                                     </div>
@@ -312,25 +255,12 @@
                                     <div class="col-md-6 mt-5">
                                         <label class="">time spent getting help</label>
                                         <div class="">
-                                            <input type="number" name="time_spent_getting_help" placeholder="time spent getting help" class="form-control form-control-lg form-control-solid" value="{{ $userTasks->where('task_id',$task->id)->count() ? $userTasks->where('task_id',$task->id)->first()->time_spent_getting_help : old('time_spent_getting_help') }}">
+                                            <input type="number" name="time_spent_getting_help" placeholder="time spent getting help" class="form-control form-control-lg form-control-solid" value="{{ $userTasks->where('task_id',$subTask->id)->count() ? $userTasks->where('task_id',$subTask->id)->first()->time_spent_getting_help : old('time_spent_getting_help') }}">
                                             <div class="fv-plugins-message-container invalid-feedback"></div>
                                         </div>
                                     </div>
                                 </div>
-
                                 
-
-                                <div class="col-md-12 mt-5">
-                                    <label class="">Status</label>
-                                    <div class="">
-                                        <select name="status" class="form-select form-select-lg form-select-solid">
-                                            @foreach(taskStatus() as $status)
-                                            <option value="{{ $status }}" {{  $userTasks->where('task_id',$task->id)->first()->status == $status ? 'selected' : '' }}>{{ $status }}</option>
-                                            @endforeach
-                                        </select>
-                                        <div class="fv-plugins-message-container invalid-feedback"></div>
-                                    </div>
-                                </div>
                             </div>
 
                             <!--begin::Actions-->
@@ -352,6 +282,115 @@
             @endforeach
         </div>
         <!--end::Card-->
+ 
+    <div class="col-md-3">
+            <ul class="list-group mt-20" style="padding:20px">
+                @foreach($projectTasks as $taskIndex => $loopTask)
+
+                    @php 
+                        $prevTask = null;
+                        $workingTask = true;
+
+                        if ($taskIndex > 0) {
+                            $prevTaskIndex = $taskIndex - 1;
+                            $prevTask = $projectTasks[$prevTaskIndex];
+                            $prevTaskStatusObj = $userTasks->where('task_id', $prevTask->id)->first();
+                            $prevTaskStatus = $prevTaskStatusObj ? $prevTaskStatusObj->status : null;
+                            $workingTask = isset($prevTaskStatus) && isDoneTask($prevTaskStatus) && $loopTask->order > $task->order;
+                        }
+                    @endphp
+
+                    <li class="list-group-item {{$task->id == $loopTask->id ? 'active text-light' : ''}} {{$workingTask ? 'working-sub-task ' : 'disabled-sub-task'}} {{ isset($prevTaskStatus) ? $prevTaskStatus : ''}}">
+                        <a class="nav-link {{$task->id == $loopTask->id ? 'text-light' : ''}}" href="{{ route('tasks.show',$loopTask->id) }}">{{ $loopTask->title }}</a>
+                    </li>
+                @endforeach
+
+                 <!--- check if user finsih form the last task he take an action !--->
+
+                 
+
+                 @if($userTasks->where('task_id', $project->tasks->whereNull('task_id')->last()->id)->first()->status != 'not started yet')
+                    @if(!$report)
+                        @can('projects.rate')
+                        <button type="button" class="mt-2 btn btn-sm btn-primary" data-toggle="modal" data-target="#RateProject">
+                            Rate Project <i class="fa fa-star" style="color:yellow"></i>
+                        </button>
+                        @endcan
+                    @endif  
+                 @endif 
+
+
+                             <!-- Modal -->
+<div class="modal fade" id="RateProject" tabindex="-1" role="dialog" aria-labelledby="RateProjectLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="RateProjectLabel">Rate the Project</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+      <form action="{{ route('projects.rate',$project->id) }}" method="POST">
+            @csrf
+            <div class="row">
+                <div class="col-md-12 mt-5">
+                    <div class="form-group">
+                        <label for="ease_of_use">How likely is that your would recommend this software to a friend or colleague?:</label>
+                        <div class="form-group mt-2">
+                            @for($i =1;$i <= 10;$i++)
+                             <div class="form-check form-check-inline mt-2">
+                                <input class="form-check-input" {{ $ProjectRate?->rate == $i ? 'checked' : ''}}  type="radio" id="value-{{$i}}" name="rate" value="{{$i}}">
+                                <label class="form-check-label" for="value-{{$i}}">{{$i}}</label>
+                            </div>
+                             @endfor
+                        </div>
+
+                        <div class="col-md-12 mt-5  {{ $ProjectRate?->rate < 5 ? '' : 'd-none'}} " id="reason">
+                            <div class="form-group">
+                                <label for="appearance">what changes must be made for your to give a higher rating?:</label>
+                                <textarea name="reason" class="form-control" cols="30" rows="10">{{ $ProjectRate?->reason}}</textarea>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <!----- 
+                <div class="col-md-6 mt-5">
+                    <div class="form-group">
+                        <label for="usefulness">Usefulness:</label>
+                        <input type="number" class="form-control" id="usefulness" value="{{$ProjectRate?->usefulness}}" name="usefulness" min="0" max="7" step="1">
+                    </div>
+                </div>
+                <div class="col-md-6 mt-5">
+                    <div class="form-group">
+                        <label for="appearance">Appearance:</label>
+                        <input type="number" class="form-control" id="appearance" value="{{$ProjectRate?->appearance}}" name="appearance" min="0" max="7" step="1">
+                    </div>
+                </div>
+                <div class="col-md-6 mt-5">
+                    <div class="form-group">
+                        <label for="clarity_and_understandability">Clarity and Understandability:</label>
+                        <input type="number" class="form-control" id="clarity_and_understandability" value="{{$ProjectRate?->clarity_and_understandability}}" name="clarity_and_understandability" min="0" max="7" step="1">
+                    </div>
+                </div> --->
+            </div>
+         
+            <button type="submit" class="btn btn-primary mt-10">Save</button>
+            
+        </form>
+      </div>
+     
+    </div>
+  </div>
+</div>
+
+      
+
+                 
+              
+            </ul>
+        </div>
     </div>
         <!--end::Container-->
     @endif <!--- end -->
@@ -373,7 +412,7 @@
 @push('js')
 @if(!$report)
 
-   
+            
 
     @if($project->end_date AND $project->end_date < now())
             <script>
@@ -382,6 +421,24 @@
     @endif 
 
     <script>    
+
+    $(document).ready(function() {
+        // Add change event listener to checkboxes
+        $('input[name="rate"]').change(function() {
+            // Get the value of the selected checkbox
+            var selectedValue = $(this).val();
+
+            // Check if the selected value is less than 5
+            if (selectedValue < 5) {
+                // If less than 5, show the #reason div
+                $('#reason').removeClass('d-none');
+            } else {
+                // If 5 or greater, hide the #reason div
+                $('#reason').addClass('d-none');
+            }
+        });
+    });
+
 
     const csrfToken = $('meta[name="csrf-token"]').attr('content');
 
@@ -469,12 +526,16 @@
         $(".disabled-task button").attr("disabled",true);
         $(".disabled-task select").attr("disabled",true);
 
-    //    $(".disabled-sub-task a").attr("href","#");
+    //   $(".disabled-sub-task a").attr("href","#");
     </script>
 @endif 
 @endpush 
 @push('css')
     <style>
+        .disabled-sub-task 
+        {
+           /* background:#F3EFEF */
+        }
         .sub-task
         {
             background: #f3efef;

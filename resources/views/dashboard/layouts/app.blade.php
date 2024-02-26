@@ -26,9 +26,7 @@
 			}		
 
 
-			* {
-				text-transform: capitalize;
-			}
+			
 		</style>
 		
 		@stack('css')

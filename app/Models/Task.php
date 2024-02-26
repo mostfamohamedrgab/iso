@@ -29,7 +29,6 @@ class Task extends Model
     {
         return $this->belongsTo(Task::class);
     }
-
    
 
 }
