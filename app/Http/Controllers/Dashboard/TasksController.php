@@ -57,20 +57,17 @@ class TasksController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $data = $request->validate([
             'order' => 'required',
             'title' => 'required|string|max:255',
             'description' => 'required|string',
+            "can_task_be_partially_completed" => "nullable",
+            'weight' => 'required|string',
             'project_id' => 'required|exists:projects,id',
         ]);
 
         // Create a new task
-        $task = Task::create([
-            'order' => $request->input('order'),
-            'title' => $request->input('title'),
-            'description' => $request->input('description'),
-            'project_id' => $request->input('project_id'),
-        ]);
+        $task = Task::create($data);
 
         // Upload task files
         if ($files = $request->file('files')) {
@@ -87,6 +84,49 @@ class TasksController extends Controller
                 ]);
             }
         }
+
+         // Check if subtask data exists
+         if ($request->has('subtask_order')) {
+            // Get subtask data from the request
+            $subtaskOrders = $request->input('subtask_order');
+            $subtaskTitles = $request->input('subtask_title');
+            $subtaskWeights = $request->input('subtask_weight');
+            $subtaskDescriptions = $request->input('subtask_description');
+            $subtaskFiles = $request->file('files'); // Handle file uploads for subtasks
+
+            // Loop through each subtask data and create subtasks
+            foreach ($subtaskOrders as $key => $order) {
+                $subtaskData = [
+                    'order' => $order,
+                    'title' => $subtaskTitles[$key],
+                    'weight' => $subtaskWeights[$key],
+                    'description' => $subtaskDescriptions[$key],
+                    'project_id' => $task->project_id,
+                    'task_id' => $task->id
+                ];
+
+                // Create the subtask
+                $subtask = Task::create($subtaskData);
+                
+                // Upload task files
+                if (isset($request->subfiles[$key])) {
+                    $files = $request->subfiles[$key];
+                    foreach ($files as $file) {
+                        $fileExtension = $file->getClientOriginalExtension();
+                        $fileName = $file->getClientOriginalName();
+
+                        // Store the file and associate it with the task
+                        $taskFile = TaskFile::create([
+                            'task_id' => $subtask->id,
+                            'file' => $file, // Customize the storage path as needed
+                            'extension' => $fileExtension,
+                            'name' => $fileName,
+                        ]);
+                    }
+                }
+            }
+        }
+
 
         return response()->json();
     }
@@ -140,6 +180,16 @@ class TasksController extends Controller
         $projectTasks = Task::where('project_id',$project->id)->whereNull('task_id')->orderBy('order','asc')->get();
         $ProjectRate = ProjectRate::where('project_id',$project->id)->where('user_id', auth()->id())->first();
 
+
+        $projectUser = DB::table('project_users')
+                    ->where('project_id', $project->id)
+                    ->where('user_id', auth()->id())
+                    ->first();
+
+        if(!$projectUser->user_answer)
+        {
+            return redirect(route('projects.accepshow',$project->id));
+        }
         
          return view('dashboard.tasks.show',[
             'task' => $task,
@@ -175,19 +225,19 @@ class TasksController extends Controller
     {
         $task = Task::findOrFail($task);
 
-        $request->validate([
+        $data = $request->validate([
             'order' => 'required',
+            'can_task_be_partially_completed' => 'nullable',
             'title' => 'required|string|max:255',
             'description' => 'required|string',
+            'weight' => 'required|string',
             'project_id' => 'required|exists:projects,id',
         ]);
 
+
+
         // Create a new task
-        $task->update([
-            'title' => $request->input('title'),
-            'description' => $request->input('description'),
-            'project_id' => $request->input('project_id'),
-        ]);
+        $task->update($data);
 
         // Upload task files
         if ($files = $request->file('files')) {
@@ -205,6 +255,49 @@ class TasksController extends Controller
             }
         }
 
+         // Check if subtask data exists
+         if ($request->has('subtask_order')) {
+            // Get subtask data from the request
+            $subtaskOrders = $request->input('subtask_order');
+            $subtaskTitles = $request->input('subtask_title');
+            $subtaskWeights = $request->input('subtask_weight');
+            $subtaskDescriptions = $request->input('subtask_description');
+            $subtaskFiles = $request->file('files'); // Handle file uploads for subtasks
+
+            // Loop through each subtask data and create subtasks
+            foreach ($subtaskOrders as $key => $order) {
+                $subtaskData = [
+                    'order' => $order,
+                    'title' => $subtaskTitles[$key],
+                    'weight' => $subtaskWeights[$key],
+                    'description' => $subtaskDescriptions[$key],
+                    'project_id' => $task->project_id,
+                    'task_id' => $task->id
+                ];
+
+                // Create the subtask
+                $subtask = Task::create($subtaskData);
+                
+                // Upload task files
+                if (isset($request->subfiles[$key])) {
+                    $files = $request->subfiles[$key];
+                    foreach ($files as $file) {
+                        $fileExtension = $file->getClientOriginalExtension();
+                        $fileName = $file->getClientOriginalName();
+
+                        // Store the file and associate it with the task
+                        $taskFile = TaskFile::create([
+                            'task_id' => $subtask->id,
+                            'file' => $file, // Customize the storage path as needed
+                            'extension' => $fileExtension,
+                            'name' => $fileName,
+                        ]);
+                    }
+                }
+            }
+        }
+
+
         return response()->json();
     }
 
@@ -212,6 +305,11 @@ class TasksController extends Controller
     public function destroy( $task)
     {
         $task = Task::findOrFail($task);
+
+        foreach ($task->files as $file) {
+            Storage::delete($file->file); // Assuming you are using Laravel's Storage facade for file deletion
+        }
+
         $task->delete();
         return response()->json();
     }
@@ -244,9 +342,17 @@ class TasksController extends Controller
             'time_spent_getting_help' => "nullable",
         ]);
 
+        if($request->status == 'It cannot be Completed')
+        {
+            $messge ='This task has been marked as “Not Successfully Completed. The task will be excluded from your final calculation';
+        }else{
+            $messge = 'Saved';
+        }
+
+
         $userTask->update($data);
 
-        return back()->withSuccess('Saved');
+        return back()->withSuccess($messge);
     }
 
    
@@ -256,10 +362,10 @@ class TasksController extends Controller
         if ($request->ajax()) {
             $action = $request->input('action');
 
-            if ($action === 'start') {
+            if ($action === 'start' AND !$userTask->start_time) {
                 $userTask->start_time = now();
                 $userTask->status = 'Working';
-            } elseif ($action === 'end') {
+            } elseif ($action === 'end' AND !$userTask->end_time) {
                 $userTask->end_time = now();
             }
 

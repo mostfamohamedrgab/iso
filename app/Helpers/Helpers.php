@@ -15,7 +15,7 @@ use App\Models\Setting;
             'Working',
             'complated',
             'Completed with assisted',
-            'It cannot be terminated',
+            'It cannot be Completed',
         ];
     }
 

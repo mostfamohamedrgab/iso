@@ -115,6 +115,13 @@ Route::group(['middleware' => ['auth',  'admin-lang' , 'web' , 'check-role'] , '
         'title' => ['actions.add', 'dashboard.admin']
     ]);
 
+    # admins store
+    Route::post('admins/import', [
+        'uses'  => 'AdminController@import',
+        'as'    => 'admins.import',
+        'title' => ['actions.import', 'dashboard.admin']
+    ]);
+
     # admins update
     Route::get('admins/{id}/edit', [
         'uses'  => 'AdminController@edit',
@@ -202,6 +209,24 @@ Route::group(['middleware' => ['auth',  'admin-lang' , 'web' , 'check-role'] , '
         'uses'  => 'ProjectsController@report',
         'as'    => 'projects.report',
         'title' => ['actions.show', 'dashboard.report']
+    ]);
+    # projects show
+    Route::get('projects/{id}/agree/choose', [
+        'uses'  => 'ProjectsController@agree',
+        'as'    => 'projects.agree',
+        'title' => ['actions.show', 'dashboard.agree']
+    ]);
+    # projects show
+    Route::get('projects/{id}/accept-confirm', [
+        'uses'  => 'ProjectsController@accept',
+        'as'    => 'projects.accepshow',
+        'title' => ['actions.show', 'dashboard.accept']
+    ]);
+    # projects show
+    Route::post('projects/{id}/accept-save', [
+        'uses'  => 'ProjectsController@acceptSave',
+        'as'    => 'projects.accept',
+        'title' => ['actions.show', 'dashboard.accept']
     ]);
     # projects show
     Route::get('projects/{id}/show', [

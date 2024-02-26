@@ -18,9 +18,18 @@ return new class extends Migration
 
             $table->unsignedBigInteger('project_id');
             $table->unsignedBigInteger('user_id');
+
+            $table->enum('used_software_before',[1,0])->nullable();
+            $table->decimal('hourly_rate', 8, 2)->nullable(); // Assuming hourly rate is a decimal value
+            
+            $table->string('gender')->nullable();
+            $table->integer('year_of_experience')->nullable();
+            $table->string('user_computer_skills')->nullable();
+            
+            $table->enum('user_answer',[1,0])->default(0);
+            
             $table->foreign('project_id')->references('id')->on('projects')->onDelete('cascade');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->decimal('hourly_rate', 8, 2); // Assuming hourly rate is a decimal value
 
             $table->timestamps();
         });

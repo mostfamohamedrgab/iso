@@ -1,17 +1,28 @@
 <!-- resources/views/emails/project_selected_notification.blade.php -->
 
 @component('mail::message')
-# New Project Selected
 
-You have been added to a new project. Here are the details:
 
-**Project Title:** {{ $project->title }}
-
-**Project Description:** {{ $project->description }}
+<h3>Dear Participant,</h3>
+<p>You are invited to complete this [{{ $project->title }}] qualityin-use assessment for [{{ $project->title }}]. The objective of this 
+assessment is [{{ $project->title }}]. </p>
+This assessment is expected to take on average [{{$project->average_time_to_complete}}]  
+minutes. <br> 
+The information in this study will be used 
+only for research purposes and in ways that will not 
+reveal who you are.  <br>
+To complete the assessment, please 
 
 @component('mail::button', ['url' => $projectUrl])
-View Project
+click here.
 @endcomponent
+
+You sign-in information is listed below: <br>
+User name: {{$user->email}} <br>
+If you have any question, please contact your  <br>
+assessment administrator,  <br>
+
+
 
 Thanks,<br>
 {{ config('app.name') }}

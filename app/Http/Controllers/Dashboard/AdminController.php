@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Storage;
 use File;
 use App\Mail\LoginDetailsMail;
 use Mail;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\UsersImport;
 
 class AdminController extends Controller
 {
@@ -28,6 +30,14 @@ class AdminController extends Controller
         $this->usersRepository = $usersRepository;
         $this->rolesRepository = $rolesRepository;
         $this->permissionRepository = $permissionRepository;
+    }
+
+    public function import (Request $request)
+    {
+        $file = $request->file('file');
+        // Use the import class to process the Excel file
+        Excel::import(new UsersImport, $file);
+        return back()->withSuccess('success');
     }
 
     public function index()

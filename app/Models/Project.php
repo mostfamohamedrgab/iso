@@ -21,6 +21,11 @@ class Project extends Model
         return $this->hasMany(ProjectRate::class);
     }
 
+    public function projectUsers()
+    {
+        return $this->hasMany(ProjectUser::class);
+    }
+
     public function users()
     {
         return $this->belongsToMany(User::class, 'project_users');
@@ -28,7 +33,7 @@ class Project extends Model
 
     public function userTasks()
     {
-        return $this->hasMany(userTask::class);
+        return $this->hasMany(UserTask::class);
     }
 
     public function files()

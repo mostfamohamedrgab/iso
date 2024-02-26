@@ -18,6 +18,8 @@ return new class extends Migration
 
             $table->foreignId('user_id')->constrained('users');
             $table->foreignId('project_id')->constrained('projects');
+            $table->integer("rate")->nullable();
+            $table->text("reason")->nullable();
 
             $table->unsignedTinyInteger('ease_of_use')->nullable();
             $table->unsignedTinyInteger('usefulness')->nullable();

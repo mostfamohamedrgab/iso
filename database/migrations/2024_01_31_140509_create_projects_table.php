@@ -17,9 +17,13 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->string('image')->nullable();
+            $table->enum('used_software_before',[1,0])->nullable();
+            $table->string('user_computer_skills')->nullable();
             $table->text('description');
-            $table->text('objective')->nullable();
+            $table->text('goal')->nullable();
             $table->date('start_date')->nullable();
+            $table->integer('admin_hourly_rate')->default(0);
+            $table->integer('average_time_to_complete')->default(0);
             $table->date('end_date')->nullable();
             $table->foreignId('customer_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();

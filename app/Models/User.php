@@ -152,9 +152,6 @@ class User extends Authenticatable
         return $this->attributes['country_code'] . $this->attributes['phone'];
     }
 
-  
-
-
 
     public function setPasswordAttribute($value)
     {

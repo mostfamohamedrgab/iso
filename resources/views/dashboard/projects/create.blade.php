@@ -103,20 +103,21 @@
                                 </div>
                         </div>
 
-                        <!-- Description -->
-                        <div class="row ">
-                            <label class="col-lg-12 col-form-label required fw-bold fs-6">Description</label>
+
+                        <!-- goal -->
+                        <div class="row mb-2">
+                            <label class="col-lg-12 col-form-label  fw-bold fs-6 required">Goal</label>
                             <div class="col-lg-12">
-                                <textarea name="description" required style="height:80px;"  placeholder="Description"class="form-control form-control-lg form-control-solid">{{ isset($project) ? $project->description : old('description') }}</textarea>
+                                <textarea name="goal" style="height:80px;" required placeholder="goal"class="form-control form-control-lg form-control-solid">{{ isset($project) ? $project->goal : old('goal') }}</textarea>
                                 <div class="fv-plugins-message-container invalid-feedback"></div>
                             </div>
                         </div>
 
-                        <!-- Objective -->
-                        <div class="row mb-2">
-                            <label class="col-lg-12 col-form-label  fw-bold fs-6">Objective</label>
+                          <!-- Description -->
+                          <div class="row ">
+                            <label class="col-lg-12 col-form-label required fw-bold fs-6">Description</label>
                             <div class="col-lg-12">
-                                <textarea name="objective" style="height:80px;"  placeholder="objective"class="form-control form-control-lg form-control-solid">{{ isset($project) ? $project->objective : old('objective') }}</textarea>
+                                <textarea name="description" required style="height:80px;"  placeholder="Description"class="form-control form-control-lg form-control-solid">{{ isset($project) ? $project->description : old('description') }}</textarea>
                                 <div class="fv-plugins-message-container invalid-feedback"></div>
                             </div>
                         </div>
@@ -134,45 +135,76 @@
                                 <div class="fv-plugins-message-container invalid-feedback"></div>
                             </div>
                         </div>
-
-
+                        <!-- Start Date and End Date (Col-6) -->
                         <div class="row mb-6">
-                        <label class="col-lg-12 col-form-label required fw-bold fs-6">Users</label>
-                        <div class="col-lg-12">
-                            <div class="mb-3">
-                                <button type="button" class="btn btn-primary" id="addUserBtn">Add User</button>
+                            <div class="col-lg-6">
+                                <label class="col-form-label  fw-bold fs-6 required">admin hourly rate</label>
+                                <input type="number" name="admin_hourly_rate" required  class="form-control form-control-lg form-control-solid" value="{{ isset($project) ? $project->admin_hourly_rate : old('admin_hourly_rate') }}">
+                                <div class="fv-plugins-message-container invalid-feedback"></div>
                             </div>
-                            <div id="userFieldsContainer">
-                                <!-- User fields will be added here -->
-                                @if(isset($project))
-                                    @foreach($projectUsers as $user)
-                                        <div class="row mb-3 user-hourly-rate" id="user-hourly-rate-{{$user->id}}">
-                                            <div class="col-lg-6">
-                                                <select name="users[]" required data-placeholder="Select user" class=" form-select form-select-lg form-select-solid">
-                                                    @foreach ($users as $projectUser)
-                                                    <option {{$user->id == $projectUser->id ? 'selected' : ''}} value="{{ $projectUser->id }}">{{ $projectUser->name }}</option>
-                                                    @endforeach
-                                                </select>
-                                                <div class="fv-plugins-message-container invalid-feedback"></div>
-                                            </div>
-                                            <div class="col-lg-4">
-                                                <input type="number" name="hourly_rate[]" required  value="{{ $user->pivot->hourly_rate }}" class="form-control form-control-lg form-control-solid" placeholder="Hourly rate">
-                                                <div class="fv-plugins-message-container invalid-feedback"></div>
-                                            </div>
-                                            <div class="col-lg-2">
-                                                <button type="button" class="btn btn-danger delete-user" data-user-id="{{$user->id}}"><i class="fa fa-trash"></i></button>
-                                            </div>
-                                        </div>
-
-                                    @endforeach
-                                @endif 
+                            <div class="col-lg-6">
+                                <label class="col-form-label  fw-bold fs-6 required">average time to complete</label>
+                                <input type="number" name="average_time_to_complete" required  class="form-control form-control-lg form-control-solid" value="{{ isset($project) ? $project->average_time_to_complete : old('average_time_to_complete') }}">
+                                <div class="fv-plugins-message-container invalid-feedback"></div>
                             </div>
                         </div>
-                    </div>
-
 
 
                         <div class="row mb-6">
+                            <label class="col-lg-12 col-form-label required fw-bold fs-6">Users</label>
+                            <div class="col-lg-12">
+                                <div class="mb-3">
+                                    <button type="button" class="btn btn-primary" id="addUserBtn">Add User</button>
+                                </div>
+                                <div id="userFieldsContainer">
+                                    <!-- User fields will be added here -->
+                                    @if(isset($project))
+                                        @foreach($projectUsers as $useIndex => $user)
+                                            <div class="row mb-3 user-hourly-rate" id="user-hourly-rate-{{$user->id}}">
+                                                <div class="col-lg-10">
+                                                    <select name="users[]" required data-placeholder="Select user" class=" form-select form-select-lg form-select-solid">
+                                                        @foreach ($users as $projectUser)
+                                                        <option {{$user->id == $projectUser->id ? 'selected' : ''}} value="{{ $projectUser->id }}">{{ $projectUser->name }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                    <div class="fv-plugins-message-container invalid-feedback"></div>
+                                                </div>
+                                                <div class="col-lg-2">
+                                                    <button type="button" class="btn btn-danger delete-user" data-user-id="{{$user->id}}"><i class="fa fa-trash"></i></button>
+                                                </div>
+                                            </div>
+
+                                        @endforeach
+                                    @endif 
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-check">
+                            <label class="form-check-label " for="used_software_before">
+                                User Used Software Before
+                            </label>
+                            <input class="form-check-input" type="checkbox" value="1" {{isset($project) && $project->used_software_before ? 'checked' : ''}} name="used_software_before" id="used_software_before">
+                        </div>
+
+                        
+                        <div class="form-group mt-10">
+                            <label for="" class=""><strong>User Computer Skills</strong></label>
+                             <div class="form-check form-check-inline">
+                                <input class="form-check-input"  {{isset($project) && strpos($project->user_computer_skills, 'beginner') !== false ? "checked" : ''}}  type="checkbox" id="beginner" name="user_computer_skills[]" value="beginner">
+                                <label class="form-check-label" for="beginner">beginner</label>
+                            </div>
+                             <div class="form-check form-check-inline">
+                                <input class="form-check-input" {{isset($project) && strpos($project->user_computer_skills, 'intermediate') !== false ? "checked" : ''}} type="checkbox" id="intermediate" name="user_computer_skills[]" value="intermediate">
+                                <label class="form-check-label" for="intermediate">intermediate</label>
+                            </div>
+                             <div class="form-check form-check-inline">
+                                <input class="form-check-input" {{isset($project) && strpos($project->user_computer_skills, 'advanced') !== false ? "checked" : ''}}  type="checkbox" id="advanced" name="user_computer_skills[]" value="advanced">
+                                <label class="form-check-label" for="advanced">advanced</label>
+                            </div>
+                        </div>
+
+                        <div class="row mt-6">
                             <label class="col-lg-12 col-form-label fw-bold fs-6">Upload Files
 
                                     @if(isset($project))
@@ -194,9 +226,12 @@
                         </div>
 
                          <!--begin::Actions-->
-                    <div class="d-flex justify-content-end">
+                    <div class="d-flex justify-content-end mt-10">
+                            @if(isset($project))
+                            <a href="{{route('tasks.create')}}?project_id={{ $project->id }}" class="btn btn-primary mr-10" style="margin-right:10px">Create Task</a>
+                            @endif
                             <!--begin::Button-->
-                            <button type="submit" id="kt_ecommerce_add_product_submit" class="btn btn-primary">
+                            <button type="submit" id="kt_ecommerce_add_product_submit" class="btn btn-success">
                                 <span class="indicator-label">@lang('dashboard.save_changes')</span>
                                 <span class="indicator-progress">@lang('dashboard.please_wait')
                                     <span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
@@ -233,7 +268,7 @@
             var userId = Date.now(); // Generate unique user ID
             var userField = `
                 <div class="row mb-3 user-hourly-rate" id="user-hourly-rate-${userId}">
-                    <div class="col-lg-6">
+                    <div class="col-lg-10">
                         <select name="users[]" required data-placeholder="Select user" class=" form-select form-select-lg form-select-solid">
                             @foreach ($users as $user)
                             <option value="{{ $user->id }}">{{ $user->name }}</option>
@@ -241,10 +276,7 @@
                         </select>
                         <div class="fv-plugins-message-container invalid-feedback"></div>
                     </div>
-                    <div class="col-lg-4">
-                        <input type="number" name="hourly_rate[]" required class="form-control form-control-lg form-control-solid" placeholder="Hourly rate">
-                        <div class="fv-plugins-message-container invalid-feedback"></div>
-                    </div>
+                   
                     <div class="col-lg-2">
                         <button type="button" class="btn btn-danger delete-user" data-user-id="${userId}"><i class="fa fa-trash"></i></button>
                     </div>

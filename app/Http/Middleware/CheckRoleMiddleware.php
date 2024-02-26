@@ -15,7 +15,6 @@ class CheckRoleMiddleware {
 
   public function handle($request, Closure $next) {
 
-
         if(!auth()->user()->is_active)
         {
           auth()->logout();
@@ -28,7 +27,16 @@ class CheckRoleMiddleware {
          $permissions->push('logout');
          $permissions = $permissions->toArray();
         // some exception 
-        $excpetions = ['edit-profile','home','logout', 'tasks.rate','tasks.time'];
+        $excpetions = [
+            'edit-profile',
+            'home',
+            'logout', 
+            'tasks.rate',
+            'tasks.time',
+            'projects.agree',
+            'projects.accepshow',
+            'projects.accept'
+          ];
 
         $currunt_route = Route::currentRouteName();
 
@@ -40,6 +48,7 @@ class CheckRoleMiddleware {
           $currunt_route = str_replace('store','create',$currunt_route);
           $currunt_route = str_replace('adminsfile.destroy','admins.destroy',$currunt_route);
           $currunt_route = str_replace('projectsfile.destroy','projects.destroy',$currunt_route);
+          $currunt_route = str_replace('import','create',$currunt_route);
         }
 
         if(!str_contains($currunt_route,'settings') AND !\str_contains($currunt_route,'sms') AND !in_array($currunt_route,$excpetions))
