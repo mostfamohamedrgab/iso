@@ -43,7 +43,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Welcome to Our Team!</h1>
+            <h1>Welcome to Q Val</h1>
         </div>
         <div class="content">
             <p>Dear {{ $user->name }},</p>

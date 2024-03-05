@@ -35,10 +35,9 @@ class HomeController extends Controller
                                     ->join('project_users', 'projects.id', '=', 'project_users.project_id')
                                     ->where('project_users.user_id', auth()->id())
                                     ->select('projects.id')
-                                    ->get()
-                                    ->pluck('id');
-                                  
-
+                                    ->get()->pluck('id');
+                                    
+            $latestProjects = Project::whereIn('id', $projectIds)->orderBy('created_at','desc')->limit(10)->get();
 
             $tasks = Task::whereIn('project_id', $projectIds)->orderBy('created_at', 'desc')->count();
             $totalProjectsCount = count($projectIds);

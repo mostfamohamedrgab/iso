@@ -56,6 +56,7 @@
                                 </div>
                             </th>
                             <th>Title</th>
+                            <th>Order</th>
                             <th>objective</th>
                             <th>Description</th>
                             <th>Project</th>
@@ -87,6 +88,7 @@
                                         </div>
                                     </div>
                                 </td>
+                                <td>{{$task->order}}</td>
                                 <td>{{$task->tasks->count() }}</td>
                                 <td>{{ $task->description }}</td>
                                 <td>{{ $task->project->title }}</td>

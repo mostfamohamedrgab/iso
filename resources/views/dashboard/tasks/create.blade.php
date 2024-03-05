@@ -71,9 +71,9 @@
                                 </div>
                             </div>
                             <div class="col-md-12">
-                                <label class="col-form-label required fw-bold fs-6">Weight (%)</label>
+                                <label class="col-form-label  fw-bold fs-6">Weight (%)</label>
                                 <div class="">
-                                    <input type="number" name="weight" required class="form-control form-control-lg form-control-solid" placeholder="weight" value="{{ isset($task) ? $task->weight : old('weight') }}">
+                                    <input type="number" name="weight"  class="form-control form-control-lg form-control-solid" placeholder="weight" value="{{ isset($task) ? $task->weight : old('weight') }}">
                                     <div class="fv-plugins-message-container invalid-feedback"></div>
                                 </div>
                             </div>
@@ -100,11 +100,6 @@
                             </div>
 
                             <div class="com-md-12 mt-5 {{isset($task) && $task->can_task_be_partially_completed ? '' : 'd-none'}} " id="tasks-count-parent">
-                                <label class="required">objective count</label>
-                                <div class="">
-                                    <input type="number" class="form-control" id="tasks-count">
-                                    <div class="fv-plugins-message-container invalid-feedback"></div>
-                                </div>
                                 <p id="messgeDiv" class=" alert alert-danger">Please correct your task inputs. You need to have at least 2 sub-tasks.</p>
                             </div>
                         </div>
@@ -130,9 +125,9 @@
                                                 </div>
                                             </div>
                                             <div class="col-md-12">
-                                                <label class="col-form-label required fw-bold fs-6">Weight (%)</label>
+                                                <label class="col-form-label  fw-bold fs-6">Weight (%)</label>
                                                 <div class="">
-                                                    <input type="number" name="subtask_weight[]" required class="form-control form-control-lg form-control-solid" placeholder="Weight" value="{{ $subtask->weight }}">
+                                                    <input type="number" name="subtask_weight[]"  class="form-control form-control-lg form-control-solid" placeholder="Weight" value="{{ $subtask->weight }}">
                                                     <div class="fv-plugins-message-container invalid-feedback"></div>
                                                 </div>
                                             </div>
@@ -167,7 +162,7 @@
                             @endif 
                         </div>
                             
-                        <button type="button" id="add-subtask-btn" class="mt-5 btn btn-sm btn-success">Add Objective</button>
+                        <button type="button" id="add-subtask-btn" class="mt-5 btn btn-sm btn-success {{isset($task) && $task->can_task_be_partially_completed ? '' : 'd-none'}}">Add Objective</button>
                         <hr>
 
 
@@ -231,6 +226,17 @@
            addSubTask();
         });
 
+
+        let Sublength = $('.sub-task').length;
+
+        if(Sublength > 1)
+        {
+            $("#messgeDiv").hide();
+        }else{
+            $("#messgeDiv").show();
+        }
+
+
         $(document).on('click', '.delete-parent-sub-task', function(e) {
             e.preventDefault();
             // Remove the parent div when the delete button is clicked
@@ -240,7 +246,6 @@
 
            if(length > 1)
            {
-                console.log('tes');
                 $("#messgeDiv").hide();
             }else{
                 $("#messgeDiv").show();
@@ -248,6 +253,8 @@
             
         });
 
+
+        
         $("#tasks-count").on("keyup", function (){
             let subTasks = $(this).val();
 
@@ -311,7 +318,6 @@
 
            if(length > 1)
            {
-                console.log('tes');
                 $("#messgeDiv").hide();
             }else{
                 $("#messgeDiv").show();
@@ -370,15 +376,24 @@
         $('.select2').select2();
 
         $('input[name="can_task_be_partially_completed"]').change(function() {
+            renderCompletedMeesge();
+        });
+
+        renderCompletedMeesge();
+        function renderCompletedMeesge()
+        {
+            let el = $('input[name="can_task_be_partially_completed"]');
             // Check if the user selected "yes"
-            if ($(this).val() === "1") {
+            if ($el.val() === "1") {
                 // Show the objective count input field
                 $('#tasks-count-parent').removeClass('d-none');
+                $('#add-subtask-btn').removeClass('d-none');
             } else {
                 // Hide the objective count input field
                 $('#tasks-count-parent').addClass('d-none');
+                $('#add-subtask-btn').addClass('d-none');
             }
-        });
+        }
 
     $(".delete-file").click(function(e){
         e.preventDefault();

@@ -21,7 +21,8 @@ class LoginDetailsMail extends Mailable
 
     public function build()
     {
-        return $this->view('emails.login-details')
+        return $this->subject('Q Val Login Details Mail')
+                    ->view('emails.login-details')
                     ->with([
                         'email' => $this->user->email,
                         'actionUrl' => route('show.login'),
@@ -29,3 +30,4 @@ class LoginDetailsMail extends Mailable
                     ]);
     }
 }
+// 

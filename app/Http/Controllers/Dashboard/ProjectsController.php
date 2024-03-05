@@ -82,13 +82,13 @@ class ProjectsController extends Controller
         $projectUser = $projectUser->pivot;
             
         $validatedData['hourly_rate'] = 'required';
-        $validatedData['year_of_experience'] = 'required';
-        $validatedData['used_software_before'] = $project->used_software_before ? 'required' : 'nullable';
+        $validatedData['year_of_experience'] = 'nullable';
+        $validatedData['used_software_before'] = $project->used_software_before == '1' ? 'required|in:1' : 'required|in:0';
         $validatedData['gender'] = 'required';
         $validatedData['user_computer_skills'] = $project->user_computer_skills ? 'required|in:'. $project->user_computer_skills : 'nullable';
        
         $data = $request->validate($validatedData,[
-            'user_computer_skills.in' => 'The selected computer skills are not accepted in this project.',
+            'user_computer_skills.in' => 'The selected computer skills are not accepted in this project - ' . $project->user_computer_skills,
         ]);
 
         $data['user_answer'] = '1';
@@ -204,13 +204,13 @@ class ProjectsController extends Controller
             'admin_hourly_rate' => 'required',
             'average_time_to_complete' => 'required',
             'start_date' => 'nullable|date',
-            'used_software_before' => 'nullable',
+            'used_software_before' => 'required',
             'user_computer_skills' => 'nullable',
             'end_date' => 'nullable|date',
             'customer_id' => 'nullable|exists:customers,id', 
         ]);
 
-        $data['used_software_before'] = $request->has('used_software_before') ? '1' : '0';
+       
         if($request->user_computer_skills)
         {
             $data['user_computer_skills'] = implode(',', $request->user_computer_skills);
@@ -256,11 +256,33 @@ class ProjectsController extends Controller
     public function show( $project)
     {
         $project = Project::findOrFail($project);
+        $projectId = $project->id;
+        $notStartedYet = 0;
 
         if (auth()->user()->can('belongs-tasks')) {
             // Check if the user is assigned to the project
             if (!$project->users->contains(auth()->user())) {
                 abort(403); // User is not assigned to the project, so forbid access
+            }
+
+            $projectUser = DB::table('project_users')
+                ->where('project_id', $project->id)
+                ->where('user_id', auth()->id())
+                ->first();
+
+        }else{
+
+            foreach($project->users as $user)
+            {
+                $notStartedYetCheck = UserTask::where('user_id', $user->id)->where('task_id', $task->id)->where('status','!=','not started yet')->first();
+
+                if(!$notStartedYetCheck)
+                {   
+                    $notStartedYet++;
+                }elseif($notStartedYet AND $notStartedYet->status == 'not started yet')
+                {
+                    $notStartedYet++;
+                }
             }
         }
 
@@ -268,17 +290,15 @@ class ProjectsController extends Controller
         $userTasks = UserTask::whereIn('task_id',$tasks->pluck('id')->toArray())->get();
 
 
-        $projectUser = DB::table('project_users')
-                            ->where('project_id', $project->id)
-                            ->where('user_id', auth()->id())
-                            ->first();
+     
 
-        if(!$projectUser->user_answer)
+
+        if(isset($projectUser) AND !$projectUser->user_answer)
         {
-            return redirect(route('projects.accepshow',$project->id));
+            return redirect(route('projects.agree',$project->id));
         }
       
-        return view('dashboard.projects.show', compact('project','tasks','userTasks'));
+        return view('dashboard.projects.show', compact('project','tasks','userTasks','notStartedYet'));
     }
 
     /**
@@ -316,14 +336,14 @@ class ProjectsController extends Controller
             'goal' => 'required|string',
             'admin_hourly_rate' => 'required',
             'average_time_to_complete' => 'required',
-            'used_software_before' => 'nullable',
+            'used_software_before' => 'required',
             'user_computer_skills' => 'nullable',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date',
             'customer_id' => 'nullable|exists:customers,id', // Ensure customer exists
         ]);
 
-        $data['used_software_before'] = $request->has('used_software_before') ? '1' : '0';
+     
         if($request->user_computer_skills)
         {
             $data['user_computer_skills'] = implode(',', $request->user_computer_skills);

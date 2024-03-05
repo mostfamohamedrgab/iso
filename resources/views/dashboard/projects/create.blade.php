@@ -153,42 +153,32 @@
                         <div class="row mb-6">
                             <label class="col-lg-12 col-form-label required fw-bold fs-6">Users</label>
                             <div class="col-lg-12">
-                                <div class="mb-3">
-                                    <button type="button" class="btn btn-primary" id="addUserBtn">Add User</button>
-                                </div>
-                                <div id="userFieldsContainer">
-                                    <!-- User fields will be added here -->
-                                    @if(isset($project))
-                                        @foreach($projectUsers as $useIndex => $user)
-                                            <div class="row mb-3 user-hourly-rate" id="user-hourly-rate-{{$user->id}}">
-                                                <div class="col-lg-10">
-                                                    <select name="users[]" required data-placeholder="Select user" class=" form-select form-select-lg form-select-solid">
-                                                        @foreach ($users as $projectUser)
-                                                        <option {{$user->id == $projectUser->id ? 'selected' : ''}} value="{{ $projectUser->id }}">{{ $projectUser->name }}</option>
-                                                        @endforeach
-                                                    </select>
-                                                    <div class="fv-plugins-message-container invalid-feedback"></div>
-                                                </div>
-                                                <div class="col-lg-2">
-                                                    <button type="button" class="btn btn-danger delete-user" data-user-id="{{$user->id}}"><i class="fa fa-trash"></i></button>
-                                                </div>
-                                            </div>
-
-                                        @endforeach
-                                    @endif 
-                                </div>
+                                <select name="users[]"  multiple required data-placeholder="Select user" class=" form-select form-select-lg form-select-solid">
+                                    @foreach ($users as $projectUser)
+                                    <option @if(isset($project)) {{ $project->users->where('id', $projectUser->id)->count() ? 'selected' : '' }} @endif value="{{ $projectUser->id }}">{{ $projectUser->name }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                         </div>
 
-                        <div class="form-check">
-                            <label class="form-check-label " for="used_software_before">
-                                User Used Software Before
-                            </label>
-                            <input class="form-check-input" type="checkbox" value="1" {{isset($project) && $project->used_software_before ? 'checked' : ''}} name="used_software_before" id="used_software_before">
+                        <h2 class="mb-8 mt-5">Assessment Criteria</h2>
+
+                        <div class="form-group ">
+                         
+                            <label for="" class=""><strong>User Used Software Before</strong></label>
+
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input"  {{isset($project) &&  $project->used_software_before  ? "checked" : ''}}  type="radio" id="beginner" name="used_software_before" value="1">
+                                <label class="form-check-label" for="beginner">Yes</label>
+                            </div>
+                             <div class="form-check form-check-inline">
+                                <input class="form-check-input" {{isset($project) &&  !$project->used_software_before   ? "checked" : ''}} type="radio" id="intermediate" name="used_software_before" value="0">
+                                <label class="form-check-label" for="intermediate">No</label>
+                            </div>
                         </div>
 
                         
-                        <div class="form-group mt-10">
+                        <div class="form-group mt-8">
                             <label for="" class=""><strong>User Computer Skills</strong></label>
                              <div class="form-check form-check-inline">
                                 <input class="form-check-input"  {{isset($project) && strpos($project->user_computer_skills, 'beginner') !== false ? "checked" : ''}}  type="checkbox" id="beginner" name="user_computer_skills[]" value="beginner">
@@ -257,6 +247,8 @@
 @endsection
 @section('scripts')
 <script>
+        $('.form-select').select2();
+
        $(document).ready(function() {
         $('#addUserBtn').click(function(e) {
             e.preventDefault();
