@@ -4,8 +4,8 @@
 
 
 <h3>Dear Participant,</h3>
-<p>You are invited to complete this [{{ $project->title }}] qualityin-use assessment for [{{ $project->title }}]. The objective of this 
-assessment is [{{ $project->title }}]. </p>
+You are invited to complete this [{{ $project->title }}] qualityin-use assessment for [{{ $project->title }}]. The objective of this 
+assessment is [{{ $project->title }}]. </br>
 This assessment is expected to take on average [{{$project->average_time_to_complete}}]  
 minutes. <br> 
 The information in this study will be used 

@@ -21,14 +21,26 @@
     @if($report)
             <div class="row">
                 @foreach(taskStatus() as $status)
-                <div class="col-md-4 mt-5">
-                    <div class="card" style="width: 90%;margin:auto">
-                        <div class="card-body">
-                            <a href="#" class="btn btn-primary" style="display:block;margin:10px 0">{{ $taskAnalytics->where('status',$status)->count() }}</a>
-                            <h5 class="card-title">{{ $status }}</h5>
+
+                    @if($status == 'not started yet')
+                    <div class="col-md-4">
+                        <div class="card" style="width: 90%;margin:auto">
+                            <div class="card-body">
+                                <a href="#" class="btn btn-primary" style="display:block;margin:10px 0">{{ $notStartedYet }}</a>
+                                <h5 class="card-title">{{ $status }}</h5>
+                            </div>
                         </div>
                     </div>
-                </div>
+                    @else 
+                    <div class="col-md-4 mt-5">
+                        <div class="card" style="width: 90%;margin:auto">
+                            <div class="card-body">
+                                <a href="#" class="btn btn-primary" style="display:block;margin:10px 0">{{ $taskAnalytics->where('status',$status)->count()   }}</a>
+                                <h5 class="card-title">{{ $status }}</h5>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
                 @endforeach
                 <div class="col-md-4 mt-5">
                     <div class="card" style="width: 100%">
@@ -245,17 +257,17 @@
 
                                 <div class="row">
                                     <div class="col-md-6 mt-5 time_spent_searching">
-                                        <label class="">time spent searching</label>
+                                        <label class="">time spent searching in minute</label>
                                         <div class="">
-                                            <input type="number" name="time_spent_searching" placeholder="time spent searching" class="form-control form-control-lg form-control-solid" value="{{ $userTasks->where('task_id',$subTask->id)->count() ? $userTasks->where('task_id',$subTask->id)->first()->time_spent_searching : old('time_spent_searching') }}">
+                                            <input type="number" name="time_spent_searching" placeholder="time spent searching in minute" class="form-control form-control-lg form-control-solid" value="{{ $userTasks->where('task_id',$subTask->id)->count() ? $userTasks->where('task_id',$subTask->id)->first()->time_spent_searching : old('time_spent_searching') }}">
                                             <div class="fv-plugins-message-container invalid-feedback"></div>
                                         </div>
                                     </div>
 
                                     <div class="col-md-6 mt-5">
-                                        <label class="">time spent getting help</label>
+                                        <label class="">time spent getting help minute</label>
                                         <div class="">
-                                            <input type="number" name="time_spent_getting_help" placeholder="time spent getting help" class="form-control form-control-lg form-control-solid" value="{{ $userTasks->where('task_id',$subTask->id)->count() ? $userTasks->where('task_id',$subTask->id)->first()->time_spent_getting_help : old('time_spent_getting_help') }}">
+                                            <input type="number" name="time_spent_getting_help" placeholder="time spent getting help minute" class="form-control form-control-lg form-control-solid" value="{{ $userTasks->where('task_id',$subTask->id)->count() ? $userTasks->where('task_id',$subTask->id)->first()->time_spent_getting_help : old('time_spent_getting_help') }}">
                                             <div class="fv-plugins-message-container invalid-feedback"></div>
                                         </div>
                                     </div>
@@ -271,7 +283,10 @@
                                     <span class="indicator-progress">@lang('dashboard.please_wait')
                                         <span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
                                 </button>
-                                <!--end::Button-->
+                                @php 
+                                    $nextTask = $projectTasks->firstWhere('id', '>', $task->id);
+                                @endphp 
+                               
                             </div>
                             <!--end::Actions-->
                         </div>
@@ -280,6 +295,15 @@
                     <!--end::Form-->
                 </div>
             @endforeach
+
+           <div class="p-10">
+            @if($nextTask)
+                <!--end::Button-->
+                <a href="{{ route('tasks.show',$nextTask->id) }}" style="margin-left:10px" class="ml-10 btn  btn-success text-center">
+                      <i class="fa fa-arrow-left"></i> Next Task
+                </a>
+                @endif 
+           </div>
         </div>
         <!--end::Card-->
  
@@ -303,13 +327,19 @@
                     <li class="list-group-item {{$task->id == $loopTask->id ? 'active text-light' : ''}} {{$workingTask ? 'working-sub-task ' : 'disabled-sub-task'}} {{ isset($prevTaskStatus) ? $prevTaskStatus : ''}}">
                         <a class="nav-link {{$task->id == $loopTask->id ? 'text-light' : ''}}" href="{{ route('tasks.show',$loopTask->id) }}">{{ $loopTask->title }}</a>
                     </li>
+                    @foreach($loopTask->tasks as $nestedLoop)
+                    <li class="list-group-item {{$task->id == $nestedLoop->id ? 'active text-light' : ''}} {{$workingTask ? 'working-sub-task ' : 'disabled-sub-task'}} {{ isset($prevTaskStatus) ? $prevTaskStatus : ''}}">
+                        <a class="nav-link {{$task->id == $nestedLoop->id ? 'text-light' : ''}}" href="{{ route('tasks.show',$nestedLoop->id) }}">{{ $nestedLoop->title }}</a>
+                    </li>
+                    @endforeach
                 @endforeach
 
                  <!--- check if user finsih form the last task he take an action !--->
 
                  
-
-                 @if($userTasks->where('task_id', $project->tasks->whereNull('task_id')->last()->id)->first()->status != 'not started yet')
+       
+     
+                 @if($loopTask->id == $task->id)
                     @if(!$report)
                         @can('projects.rate')
                         <button type="button" class="mt-2 btn btn-sm btn-primary" data-toggle="modal" data-target="#RateProject">
@@ -346,7 +376,7 @@
                              @endfor
                         </div>
 
-                        <div class="col-md-12 mt-5  {{ $ProjectRate?->rate < 5 ? '' : 'd-none'}} " id="reason">
+                        <div class="col-md-12 mt-5  {{ $ProjectRate?->ratessss < 5 ? '' : 'd-none'}} " id="reason">
                             <div class="form-group">
                                 <label for="appearance">what changes must be made for your to give a higher rating?:</label>
                                 <textarea name="reason" class="form-control" cols="30" rows="10">{{ $ProjectRate?->reason}}</textarea>
@@ -405,6 +435,9 @@
             .start-task , .end-task {
                 display:none
             }
+            #RateProject .modal-dialog {
+                max-width: 750px;
+            }
         </style>
     @endif 
 @endpush
@@ -424,7 +457,7 @@
 
     $(document).ready(function() {
         // Add change event listener to checkboxes
-        $('input[name="rate"]').change(function() {
+        $('input[name="ratesssssssssssss"]').change(function() {
             // Get the value of the selected checkbox
             var selectedValue = $(this).val();
 

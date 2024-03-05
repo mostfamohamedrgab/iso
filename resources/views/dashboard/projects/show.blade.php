@@ -141,15 +141,26 @@
                  <hr style="background:#ddd;padding:10px">
                     <div class="row ">
                             @foreach(taskStatus() as $status)
-                                <div class="col-md-4 ">
-                                    <div class="card" style="width: 90%;margin:auto">
-                                        <div class="card-body">
-                                            <a href="#" class="btn btn-primary" style="display:block;margin:10px 0">{{ $userTasks->where('status',$status)->count() }}</a>
-                                            <h5 class="card-title">{{ $status }}</h5>
+                                    @if($status == 'not started yet')
+                                    <div class="col-md-4 ">
+                                        <div class="card" style="width: 90%;margin:auto">
+                                            <div class="card-body">
+                                                <a href="#" class="btn btn-primary" style="display:block;margin:10px 0">{{ $notStartedYet }}</a>
+                                                <h5 class="card-title">{{ $status }}</h5>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                                @endforeach
+                                    @else 
+                                    <div class="col-md-4 ">
+                                        <div class="card" style="width: 90%;margin:auto">
+                                            <div class="card-body">
+                                                <a href="#" class="btn btn-primary" style="display:block;margin:10px 0">{{ $userTasks->where('status',$status)->count() }}</a>
+                                                <h5 class="card-title">{{ $status }}</h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @endif
+                            @endforeach
 
                                 <div class="col-md-4 ">
                                     <div class="card" style="width: 100%">

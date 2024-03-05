@@ -18,7 +18,6 @@ class TasksController extends Controller
     {   
 
         if (auth()->user()->can('belongs-tasks')) {
-
             $projectIds = DB::table('projects')
                                 ->join('project_users', 'projects.id', '=', 'project_users.project_id')
                                 ->where('project_users.user_id', auth()->id())
@@ -26,11 +25,16 @@ class TasksController extends Controller
                                 ->get()
                                 ->pluck('id');
 
-            $tasks = Task::whereIn('project_id', $projectIds)->whereNull('task_id')->orderBy('created_at', 'desc')->paginate(100);
+            $tasks = Task::whereIn('project_id', $projectIds)->whereNull('task_id')->orderBy('created_at', 'desc')->orderBy('order','asc')->paginate(100);
             
         }else{
-            $tasks = Task::orderBy('created_at','desc')->whereNull('task_id')->paginate(100); // Retrieve all tasks from the database
+            $tasks = Task::orderByDesc('created_at')
+                    ->orderBy('order','asc')
+                    ->paginate(100);
         }
+
+        
+        
  
         return view('dashboard.tasks.index', compact('tasks'));
     }
@@ -62,7 +66,7 @@ class TasksController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             "can_task_be_partially_completed" => "nullable",
-            'weight' => 'required|string',
+            'weight' => 'nullable|string',
             'project_id' => 'required|exists:projects,id',
         ]);
 
@@ -86,7 +90,7 @@ class TasksController extends Controller
         }
 
          // Check if subtask data exists
-         if ($request->has('subtask_order')) {
+         if ($request->has('subtask_order') AND $request->can_task_be_partially_completed) {
             // Get subtask data from the request
             $subtaskOrders = $request->input('subtask_order');
             $subtaskTitles = $request->input('subtask_title');
@@ -145,7 +149,8 @@ class TasksController extends Controller
         $tasks = [];
         $taskAnalytics = [];
         $report = true; // report about userts who make this task 
-
+        $notStartedYet = 0;
+        
         if (auth()->user()->can('belongs-tasks')) {
             // Check if the user is assigned to the project
             if (!$project->users->contains(auth()->user())) {
@@ -170,11 +175,25 @@ class TasksController extends Controller
                 $userTask = UserTask::firstOrCreate($attributes);
             }
             
-            $userTasks = UserTask::OrwhereIn('task_id',$tasks->pluck('id')->toArray())->get();
+            $userTasks = UserTask::OrwhereIn('task_id',$tasks->pluck('id')->toArray())->where('user_id', auth()->id())->get();
 
             $report = false;
         }else{
             $taskAnalytics = UserTask::where('task_id',$task->id)->get();
+
+            foreach($project->users as $user)
+            {
+                $notStartedYetCheck = UserTask::where('user_id', $user->id)->where('task_id', $task->id)->where('status','!=','not started yet')->first();
+
+                if(!$notStartedYetCheck)
+                {   
+                    $notStartedYet++;
+                }elseif($notStartedYet AND $notStartedYet->status == 'not started yet')
+                {
+                    $notStartedYet++;
+                }
+            }
+
         }
 
         $projectTasks = Task::where('project_id',$project->id)->whereNull('task_id')->orderBy('order','asc')->get();
@@ -182,13 +201,13 @@ class TasksController extends Controller
 
 
         $projectUser = DB::table('project_users')
-                    ->where('project_id', $project->id)
-                    ->where('user_id', auth()->id())
-                    ->first();
+                        ->where('project_id', $project->id)
+                        ->where('user_id', auth()->id())
+                        ->first();
 
-        if(!$projectUser->user_answer)
+        if($projectUser AND !$projectUser->user_answer AND auth()->user()->can('belongs-tasks'))
         {
-            return redirect(route('projects.accepshow',$project->id));
+            return redirect(route('projects.agree',$project->id));
         }
         
          return view('dashboard.tasks.show',[
@@ -198,6 +217,7 @@ class TasksController extends Controller
             'tasks' => $tasks,
             'project' => $project,
             'report' => $report,
+            'notStartedYet' => $notStartedYet,
             'taskAnalytics' => $taskAnalytics,
             'userTasks' => $userTasks,
         ]);
@@ -230,7 +250,7 @@ class TasksController extends Controller
             'can_task_be_partially_completed' => 'nullable',
             'title' => 'required|string|max:255',
             'description' => 'required|string',
-            'weight' => 'required|string',
+            'weight' => 'nullable|string',
             'project_id' => 'required|exists:projects,id',
         ]);
 
@@ -256,7 +276,7 @@ class TasksController extends Controller
         }
 
          // Check if subtask data exists
-         if ($request->has('subtask_order')) {
+         if ($request->has('subtask_order') AND $request->can_task_be_partially_completed) {
             // Get subtask data from the request
             $subtaskOrders = $request->input('subtask_order');
             $subtaskTitles = $request->input('subtask_title');
